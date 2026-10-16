@@ -1,8 +1,5 @@
 from django.db import models
 
-# Create your models here.
-from django.db import models
-
 
 class Editorial(models.Model):
     id_editorial = models.AutoField(primary_key=True)
@@ -40,6 +37,7 @@ class Libro(models.Model):
     editorial = models.ForeignKey(Editorial, models.DO_NOTHING, db_column="id_editorial")
     categoria = models.ForeignKey(Categoria, models.DO_NOTHING, db_column="id_categoria")
     eliminado = models.BooleanField(default=False)
+    autores = models.ManyToManyField(Autor, through="LibroAutor", related_name="libros")
 
     class Meta:
         managed = False
