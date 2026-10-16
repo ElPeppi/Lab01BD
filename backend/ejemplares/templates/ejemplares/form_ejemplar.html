@@ -1,0 +1,97 @@
+{% extends "ejemplares/base_ejemplares.html" %}
+
+{% block title %}{{ titulo_pagina }} - Biblioteca{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="mb-3">
+            <a href="{% url 'ejemplares:lista' %}" class="text-decoration-none small">
+                <i class="bi bi-arrow-left me-1"></i>Volver al listado de ejemplares
+            </a>
+        </div>
+
+        <div class="card card-stat p-4 bg-white">
+            <h1 class="h4 fw-bold mb-1">{{ titulo_pagina }}</h1>
+            <p class="text-muted small mb-4">
+                Complete los datos del ejemplar físico asociado a un título del catálogo bibliográfico.
+            </p>
+
+            <form method="post" novalidate>
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for err in form.non_field_errors %}
+                            <div>{{ err }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label for="{{ form.libro.id_for_label }}" class="form-label fw-semibold">
+                        {{ form.libro.label }} <span class="text-danger">*</span>
+                    </label>
+                    {{ form.libro }}
+                    {% if form.libro.errors %}
+                        <div class="text-danger small mt-1">{{ form.libro.errors|striptags }}</div>
+                    {% endif %}
+                </div>
+
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label for="{{ form.codigo_barras.id_for_label }}" class="form-label fw-semibold">
+                            {{ form.codigo_barras.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.codigo_barras }}
+                        <div class="form-text">Identificador único del ejemplar físico (ej. BC-0001).</div>
+                        {% if form.codigo_barras.errors %}
+                            <div class="text-danger small mt-1">{{ form.codigo_barras.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.ubicacion.id_for_label }}" class="form-label fw-semibold">
+                            {{ form.ubicacion.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.ubicacion }}
+                        <div class="form-text">Indique sala, pasillo y estante (ej. Sala General - Estante A1).</div>
+                        {% if form.ubicacion.errors %}
+                            <div class="text-danger small mt-1">{{ form.ubicacion.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label for="{{ form.estado.id_for_label }}" class="form-label fw-semibold">
+                            {{ form.estado.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.estado }}
+                        {% if form.estado.errors %}
+                            <div class="text-danger small mt-1">{{ form.estado.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-md-6">
+                        <label for="{{ form.condicion.id_for_label }}" class="form-label fw-semibold">
+                            {{ form.condicion.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.condicion }}
+                        {% if form.condicion.errors %}
+                            <div class="text-danger small mt-1">{{ form.condicion.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 border-top pt-3">
+                    <a href="{% url 'ejemplares:lista' %}" class="btn btn-outline-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary px-4">
+                        <i class="bi bi-check2-circle me-1"></i>{{ accion }}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

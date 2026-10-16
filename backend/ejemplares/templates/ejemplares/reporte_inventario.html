@@ -1,0 +1,299 @@
+{% extends "ejemplares/base_ejemplares.html" %}
+
+{% block title %}Reporte de Inventario por Estado - Biblioteca{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h1 class="h3 fw-bold mb-1">Reporte de Inventario por Estado</h1>
+        <p class="text-muted mb-0">
+            Total general y desglose de ejemplares físicos por estado (Disponible, Prestado, Perdido), categoría y título.
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'ejemplares:api_inventario' %}{% if estado_filtro %}?estado={{ estado_filtro }}{% endif %}" target="_blank" class="btn btn-outline-secondary">
+            <i class="bi bi-filetype-json me-1"></i>Exportar JSON
+        </a>
+        <a href="{% url 'ejemplares:crear' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Registrar Ejemplar
+        </a>
+    </div>
+</div>
+
+<!-- Tarjetas de Resumen Global del Inventario -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <a href="{% url 'ejemplares:reporte_inventario' %}" class="text-decoration-none">
+            <div class="card card-stat p-3 bg-white {% if not estado_filtro %}border border-primary border-2{% endif %}">
+                <div class="text-muted small fw-semibold text-uppercase">Total Inventario Activo</div>
+                <div class="d-flex justify-content-between align-items-baseline mt-1">
+                    <span class="fs-2 fw-bold text-dark">{{ resumen_global.total }}</span>
+                    <span class="small text-muted">100% ({{ resumen_global.dados_de_baja }} de baja)</span>
+                </div>
+                <div class="progress mt-2" style="height: 6px;">
+                    <div class="progress-bar bg-success" style="width: {{ resumen_global.pct_disponibles }}%"></div>
+                    <div class="progress-bar bg-warning" style="width: {{ resumen_global.pct_prestados }}%"></div>
+                    <div class="progress-bar bg-danger" style="width: {{ resumen_global.pct_perdidos }}%"></div>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="?estado=disponible{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="text-decoration-none">
+            <div class="card card-stat p-3 bg-white {% if estado_filtro == 'disponible' %}border border-success border-2{% endif %}">
+                <div class="text-muted small fw-semibold text-uppercase">Disponibles</div>
+                <div class="d-flex justify-content-between align-items-baseline mt-1">
+                    <span class="fs-2 fw-bold text-success">{{ resumen_global.disponibles }}</span>
+                    <span class="badge badge-disponible">{{ resumen_global.pct_disponibles }}%</span>
+                </div>
+                <div class="small text-muted mt-2">Listos para préstamo en sala/estante</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="?estado=prestado{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="text-decoration-none">
+            <div class="card card-stat p-3 bg-white {% if estado_filtro == 'prestado' %}border border-warning border-2{% endif %}">
+                <div class="text-muted small fw-semibold text-uppercase">Prestados</div>
+                <div class="d-flex justify-content-between align-items-baseline mt-1">
+                    <span class="fs-2 fw-bold text-warning">{{ resumen_global.prestados }}</span>
+                    <span class="badge badge-prestado">{{ resumen_global.pct_prestados }}%</span>
+                </div>
+                <div class="small text-muted mt-2">Actualmente en poder de usuarios</div>
+            </div>
+        </a>
+    </div>
+
+    <div class="col-md-3">
+        <a href="?estado=perdido{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="text-decoration-none">
+            <div class="card card-stat p-3 bg-white {% if estado_filtro == 'perdido' %}border border-danger border-2{% endif %}">
+                <div class="text-muted small fw-semibold text-uppercase">Perdidos</div>
+                <div class="d-flex justify-content-between align-items-baseline mt-1">
+                    <span class="fs-2 fw-bold text-danger">{{ resumen_global.perdidos }}</span>
+                    <span class="badge badge-perdido">{{ resumen_global.pct_perdidos }}%</span>
+                </div>
+                <div class="small text-muted mt-2">Extraviados ({{ resumen_global.danados }} con daño físico)</div>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Barra de Filtros del Reporte -->
+<div class="card card-stat p-3 mb-4 bg-white">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold mb-1">Filtrar por Estado</label>
+            <select name="estado" class="form-select">
+                <option value="">Todos los estados</option>
+                {% for valor, etiqueta in estados_choices %}
+                    <option value="{{ valor }}" {% if estado_filtro == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold mb-1">Condición Física</label>
+            <select name="condicion" class="form-select">
+                <option value="">Todas</option>
+                {% for valor, etiqueta in condiciones_choices %}
+                    <option value="{{ valor }}" {% if condicion_filtro == valor %}selected{% endif %}>{{ etiqueta }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold mb-1">Categoría</label>
+            <select name="categoria" class="form-select">
+                <option value="">Todas las categorías</option>
+                {% for cat in categorias %}
+                    <option value="{{ cat.id_categoria }}" {% if categoria_id == cat.id_categoria %}selected{% endif %}>
+                        {{ cat.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold mb-1">Búsqueda rápida</label>
+            <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Título, ISBN, código o estante...">
+        </div>
+
+        <div class="col-md-1 d-grid">
+            <button type="submit" class="btn btn-dark"><i class="bi bi-funnel"></i></button>
+        </div>
+    </form>
+</div>
+
+<!-- Pestañas de Visualización del Inventario -->
+<ul class="nav nav-tabs mb-3" id="inventarioTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active fw-semibold" id="tab-ejemplares" data-bs-toggle="tab" data-bs-target="#pane-ejemplares" type="button" role="tab">
+            <i class="bi bi-list-ul me-1"></i>Desglose de Ejemplares ({{ resumen_filtrado.total }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="tab-libros" data-bs-toggle="tab" data-bs-target="#pane-libros" type="button" role="tab">
+            <i class="bi bi-book me-1"></i>Consolidado por Libro ({{ desglose_por_libro|length }})
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link fw-semibold" id="tab-categorias" data-bs-toggle="tab" data-bs-target="#pane-categorias" type="button" role="tab">
+            <i class="bi bi-tags me-1"></i>Consolidado por Categoría ({{ desglose_por_categoria|length }})
+        </button>
+    </li>
+</ul>
+
+<div class="tab-content" id="inventarioTabsContent">
+    <!-- TAB 1: Listado de Ejemplares filtrados por Estado -->
+    <div class="tab-pane fade show active" id="pane-ejemplares" role="tabpanel">
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Código de Barras</th>
+                            <th>Título del Libro</th>
+                            <th>ISBN</th>
+                            <th>Categoría</th>
+                            <th>Ubicación (Sala / Estante)</th>
+                            <th>Estado</th>
+                            <th>Condición</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ej in ejemplares %}
+                        <tr>
+                            <td class="ps-3">
+                                <a href="{% url 'ejemplares:detalle' ej.id_ejemplar %}" class="fw-bold font-monospace text-decoration-none">
+                                    {{ ej.codigo_barras }}
+                                </a>
+                            </td>
+                            <td class="fw-semibold">{{ ej.libro.titulo }}</td>
+                            <td class="font-monospace small">{{ ej.libro.isbn }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ ej.libro.categoria.nombre }}</span></td>
+                            <td><i class="bi bi-geo-alt text-secondary me-1"></i>{{ ej.ubicacion }}</td>
+                            <td>
+                                {% if ej.estado == 'disponible' %}
+                                    <span class="badge badge-disponible">Disponible</span>
+                                {% elif ej.estado == 'prestado' %}
+                                    <span class="badge badge-prestado">Prestado</span>
+                                {% else %}
+                                    <span class="badge badge-perdido">Perdido</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if ej.condicion == 'bueno' %}
+                                    <span class="badge badge-bueno">Bueno</span>
+                                {% else %}
+                                    <span class="badge badge-danado">Dañado</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5 text-muted">
+                                No hay ejemplares que coincidan con el filtro de estado seleccionado.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 2: Consolidado de Inventario por Libro -->
+    <div class="tab-pane fade" id="pane-libros" role="tabpanel">
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Libro</th>
+                            <th>ISBN</th>
+                            <th>Categoría</th>
+                            <th class="text-center">Total Copias</th>
+                            <th class="text-center text-success">Disponibles</th>
+                            <th class="text-center text-warning">Prestados</th>
+                            <th class="text-center text-danger">Perdidos</th>
+                            <th class="text-center">Dañados</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for libro in desglose_por_libro %}
+                        <tr>
+                            <td class="ps-3">
+                                <div class="fw-semibold">{{ libro.titulo }}</div>
+                                <div class="small text-muted">{{ libro.editorial.nombre }} ({{ libro.anio }})</div>
+                            </td>
+                            <td class="font-monospace small">{{ libro.isbn }}</td>
+                            <td><span class="badge bg-light text-dark border">{{ libro.categoria.nombre }}</span></td>
+                            <td class="text-center fw-bold">{{ libro.total_ejemplares }}</td>
+                            <td class="text-center">
+                                <span class="badge badge-disponible">{{ libro.disponibles }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-prestado">{{ libro.prestados }}</span>
+                            </td>
+                            <td class="text-center">
+                                <span class="badge badge-perdido">{{ libro.perdidos }}</span>
+                            </td>
+                            <td class="text-center">
+                                {% if libro.danados > 0 %}
+                                    <span class="badge badge-danado">{{ libro.danados }}</span>
+                                {% else %}
+                                    <span class="text-muted">0</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4 text-muted">
+                                No hay libros registrados para mostrar en el consolidado.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- TAB 3: Consolidado por Categoría -->
+    <div class="tab-pane fade" id="pane-categorias" role="tabpanel">
+        <div class="table-container">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Categoría</th>
+                            <th class="text-center">Total Ejemplares</th>
+                            <th class="text-center text-success">Disponibles</th>
+                            <th class="text-center text-warning">Prestados</th>
+                            <th class="text-center text-danger">Perdidos</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cat in desglose_por_categoria %}
+                        <tr>
+                            <td class="ps-3 fw-semibold">{{ cat.nombre }}</td>
+                            <td class="text-center fw-bold">{{ cat.total }}</td>
+                            <td class="text-center"><span class="badge badge-disponible">{{ cat.disponibles }}</span></td>
+                            <td class="text-center"><span class="badge badge-prestado">{{ cat.prestados }}</span></td>
+                            <td class="text-center"><span class="badge badge-perdido">{{ cat.perdidos }}</span></td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center py-4 text-muted">
+                                Sin datos por categoría.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
