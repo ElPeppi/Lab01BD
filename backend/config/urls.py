@@ -24,5 +24,6 @@ urlpatterns = [
     path('ejemplares/', include('ejemplares.urls', namespace='ejemplares')),
     path('reportes/inventario/', ejemplares_views.reporte_inventario,
          name='reporte_inventario_global'),
+    path('api/auth/', include('usuarios.urls')),
 ]
 

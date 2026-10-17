@@ -287,3 +287,9 @@ INSERT INTO usuario (codigo, identificacion, nombres, correo, clave_hash, rol, c
 ('DOC-9001',  '72123456',   'Dr. Roberto Angulo', 'rangulo@uninorte.edu.co', 'pbkdf2_sha256$600000$demo$hash5', 'docente', 'Departamento de Sistemas', 'activo', FALSE),
 ('200150199', '1045678999', 'Andrés Castro', 'acastro@uninorte.edu.co', 'pbkdf2_sha256$600000$demo$hash6', 'estudiante', 'Ingeniería Industrial', 'bloqueado', FALSE)
 ON DUPLICATE KEY UPDATE nombres = VALUES(nombres), estado = VALUES(estado);
+
+
+USE biblioteca;
+UPDATE empleado SET clave_hash = 'pbkdf2_sha256$1500000$BvhaEWdgObSe3L5Vn7gHAt$1Z78vxHjr4m0tmanZgMsPvmeyqG7YbGtkFHgiHObBH0='  WHERE correo = 'admin.biblioteca@uninorte.edu.co';
+UPDATE empleado SET clave_hash = 'pbkdf2_sha256$1500000$oIxHHppySRp9oAuC23cV6X$aDyLVaW2ZgKYtEGUlQNhK7FCTxihzwWZHoCBvxiyXxU='  WHERE correo = 'bibliotecario@uninorte.edu.co';
+UPDATE usuario  SET clave_hash = 'pbkdf2_sha256$1500000$oIxHHppySRp9oAuC23cV6X$aDyLVaW2ZgKYtEGUlQNhK7FCTxihzwWZHoCBvxiyXxU='  WHERE id_usuario > 0;

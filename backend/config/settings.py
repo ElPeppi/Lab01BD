@@ -133,3 +133,8 @@ MAILERS = {
 }
 
 CORS_ALLOWED_ORIGINS = ["http://localhost:5173", "http://localhost:3000"]
+
+REST_FRAMEWORK = {
+    "DEFAULT_AUTHENTICATION_CLASSES": ["usuarios.authentication.JWTAuthentication"],
+    "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
+}
