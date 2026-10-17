@@ -16,8 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
+from ejemplares import views as ejemplares_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/catalogo/', include('catalogo.urls')),
+    path('ejemplares/', include('ejemplares.urls', namespace='ejemplares')),
+    path('reportes/inventario/', ejemplares_views.reporte_inventario,
+         name='reporte_inventario_global'),
 ]
+

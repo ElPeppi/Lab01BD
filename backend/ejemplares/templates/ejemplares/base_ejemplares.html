@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gestión de Ejemplares e Inventario - Biblioteca Universitaria{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8fafc;
+            color: #1e293b;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+        .navbar-biblioteca {
+            background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%);
+        }
+        .card-stat {
+            border: none;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.06);
+            transition: transform 0.15s ease;
+        }
+        .card-stat:hover {
+            transform: translateY(-2px);
+        }
+        .badge-disponible {
+            background-color: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+        .badge-prestado {
+            background-color: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+        .badge-perdido {
+            background-color: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        .badge-bueno {
+            background-color: #e0f2fe;
+            color: #075985;
+        }
+        .badge-danado {
+            background-color: #ffedd5;
+            color: #9a3412;
+        }
+        html, body {
+            overflow-x: hidden;
+        }
+        .table-container {
+            background: #ffffff;
+            border-radius: 0.75rem;
+            box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
+            width: 100%;
+        }
+        .container-amplio {
+            width: 100%;
+            max-width: 1440px;
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .badge-categoria {
+            white-space: normal !important;
+            text-align: left;
+            line-height: 1.35;
+            display: inline-block;
+            word-break: break-word;
+        }
+        .min-w-0 {
+            min-width: 0 !important;
+        }
+        .book-cover-sm {
+            width: 38px;
+            height: 56px;
+            object-fit: cover;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(15, 23, 42, 0.18);
+            flex-shrink: 0;
+            background-color: #e2e8f0;
+        }
+        .book-cover-lg {
+            width: 96px;
+            height: 142px;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.22);
+            flex-shrink: 0;
+            background-color: #e2e8f0;
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-biblioteca shadow-sm mb-4">
+        <div class="container-amplio d-flex flex-wrap align-items-center justify-content-between">
+            <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'ejemplares:lista' %}">
+                <i class="bi bi-journal-bookmark-fill"></i>
+                <span>Biblioteca Universitaria · Ejemplares</span>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navEjemplares">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navEjemplares">
+                <ul class="navbar-nav ms-auto gap-1">
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'lista' %}active fw-semibold{% endif %}" href="{% url 'ejemplares:lista' %}">
+                            <i class="bi bi-upc-scan me-1"></i>Catálogo de Ejemplares
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'crear' %}active fw-semibold{% endif %}" href="{% url 'ejemplares:crear' %}">
+                            <i class="bi bi-plus-circle me-1"></i>Registrar Ejemplar
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.resolver_match.url_name == 'reporte_inventario' %}active fw-semibold{% endif %}" href="{% url 'ejemplares:reporte_inventario' %}">
+                            <i class="bi bi-bar-chart-line me-1"></i>Reporte de Inventario
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container-amplio pb-5">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show shadow-sm" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

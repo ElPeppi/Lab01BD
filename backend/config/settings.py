@@ -14,9 +14,10 @@ from pathlib import Path
 from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
-SECRET_KEY = os.getenv("SECRET_KEY")
+load_dotenv(BASE_DIR / ".env")
+load_dotenv()
+SECRET_KEY = os.getenv("SECRET_KEY") or "django-insecure-lab01-bd-uninorte-2026"
 DEBUG = True
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
@@ -72,11 +73,11 @@ WSGI_APPLICATION = 'config.wsgi.application'
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
-        "NAME": os.getenv("DB_NAME"),
-        "USER": os.getenv("DB_USER"),
-        "PASSWORD": os.getenv("DB_PASSWORD"),
-        "HOST": os.getenv("DB_HOST"),
-        "PORT": os.getenv("DB_PORT"),
+        "NAME": os.getenv("DB_NAME") or "biblioteca",
+        "USER": os.getenv("DB_USER") or "majo",
+        "PASSWORD": os.getenv("DB_PASSWORD") or "Majo123890",
+        "HOST": os.getenv("DB_HOST") or "localhost",
+        "PORT": os.getenv("DB_PORT") or "3306",
         "OPTIONS": {
             "charset": "utf8mb4",
             "ssl": {"ca": str(BASE_DIR / "certs" / "global-bundle.pem")},

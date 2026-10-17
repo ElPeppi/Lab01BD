@@ -1,0 +1,208 @@
+{% extends "ejemplares/base_ejemplares.html" %}
+{% load portadas %}
+
+{% block title %}Gestión de Ejemplares Físicos - Biblioteca{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+    <div>
+        <h1 class="h3 fw-bold mb-1">Gestión de Ejemplares Físicos</h1>
+        <p class="text-muted mb-0">Administración de copias físicas por código de barras, ubicación (sala/estante) y estado.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'ejemplares:reporte_inventario' %}" class="btn btn-outline-primary">
+            <i class="bi bi-pie-chart me-1"></i>Ver Inventario por Estado
+        </a>
+        <a href="{% url 'ejemplares:crear' %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Nuevo Ejemplar
+        </a>
+    </div>
+</div>
+
+<!-- Resumen rápido del listado filtrado -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card card-stat p-3 bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small fw-semibold text-uppercase">Total Listados</div>
+                    <div class="fs-3 fw-bold text-dark">{{ resumen.total }}</div>
+                </div>
+                <div class="fs-2 text-primary opacity-75"><i class="bi bi-bookshelf"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-stat p-3 bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small fw-semibold text-uppercase">Disponibles</div>
+                    <div class="fs-3 fw-bold text-success">{{ resumen.disponibles }}</div>
+                </div>
+                <div class="fs-2 text-success opacity-75"><i class="bi bi-check-circle"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-stat p-3 bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small fw-semibold text-uppercase">Prestados</div>
+                    <div class="fs-3 fw-bold text-warning">{{ resumen.prestados }}</div>
+                </div>
+                <div class="fs-2 text-warning opacity-75"><i class="bi bi-arrow-left-right"></i></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-stat p-3 bg-white">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small fw-semibold text-uppercase">Perdidos</div>
+                    <div class="fs-3 fw-bold text-danger">{{ resumen.perdidos }}</div>
+                </div>
+                <div class="fs-2 text-danger opacity-75"><i class="bi bi-exclamation-octagon"></i></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Formulario de Búsqueda y Filtros -->
+<div class="card card-stat p-3 mb-4 bg-white">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label small fw-semibold mb-1">Buscar</label>
+            {{ form_filtro.q }}
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold mb-1">Libro</label>
+            {{ form_filtro.libro }}
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold mb-1">Estado</label>
+            {{ form_filtro.estado }}
+        </div>
+        <div class="col-md-2">
+            <label class="form-label small fw-semibold mb-1">Condición</label>
+            {{ form_filtro.condicion }}
+        </div>
+        <div class="col-md-1 d-grid">
+            <button type="submit" class="btn btn-dark" title="Filtrar">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+        <div class="col-12 d-flex justify-content-between align-items-center pt-1">
+            <div class="form-check">
+                {{ form_filtro.mostrar_bajas }}
+                <label class="form-check-label small text-muted" for="{{ form_filtro.mostrar_bajas.id_for_label }}">
+                    Incluir ejemplares dados de baja
+                </label>
+            </div>
+            <a href="{% url 'ejemplares:lista' %}" class="small text-decoration-none">
+                <i class="bi bi-x-circle me-1"></i>Limpiar filtros
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Tabla de Ejemplares -->
+<div class="table-container">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3 text-nowrap">Código</th>
+                    <th>Libro (Título / ISBN)</th>
+                    <th>Categoría</th>
+                    <th>Ubicación Física</th>
+                    <th class="text-nowrap">Estado</th>
+                    <th class="text-nowrap">Condición</th>
+                    <th class="text-end pe-3 text-nowrap">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ej in ejemplares %}
+                <tr class="{% if ej.eliminado %}table-secondary text-muted{% endif %}">
+                    <td class="ps-3 text-nowrap">
+                        <a href="{% url 'ejemplares:detalle' ej.id_ejemplar %}" class="fw-bold font-monospace text-decoration-none">
+                            <i class="bi bi-upc me-1"></i>{{ ej.codigo_barras }}
+                        </a>
+                        {% if ej.eliminado %}
+                            <span class="badge bg-secondary ms-1">Baja</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <img src="{{ ej.libro|url_portada }}"
+                                 alt="Portada de {{ ej.libro.titulo }}"
+                                 class="book-cover-sm"
+                                 loading="lazy"
+                                 onerror="this.onerror=null;this.src='{{ ej.libro|svg_portada_fallback }}';">
+                            <div class="min-w-0">
+                                <div class="fw-semibold text-break">{{ ej.libro.titulo }}</div>
+                                <div class="small text-muted">ISBN: <span class="text-nowrap">{{ ej.libro.isbn }}</span> · {{ ej.libro.editorial.nombre }}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border badge-categoria">{{ ej.libro.categoria.nombre }}</span>
+                    </td>
+                    <td class="small">
+                        <i class="bi bi-geo-alt text-secondary me-1"></i>{{ ej.ubicacion }}
+                    </td>
+                    <td class="text-nowrap">
+                        {% if ej.eliminado %}
+                            <span class="badge bg-secondary px-2 py-1">Dado de baja</span>
+                        {% elif ej.estado == 'disponible' %}
+                            <span class="badge badge-disponible px-2 py-1">Disponible</span>
+                        {% elif ej.estado == 'prestado' %}
+                            <span class="badge badge-prestado px-2 py-1">Prestado</span>
+                        {% else %}
+                            <span class="badge badge-perdido px-2 py-1">Perdido</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-nowrap">
+                        {% if ej.condicion == 'bueno' %}
+                            <span class="badge badge-bueno px-2 py-1">Bueno</span>
+                        {% else %}
+                            <span class="badge badge-danado px-2 py-1">Dañado</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end pe-3 text-nowrap">
+                        <div class="btn-group btn-group-sm">
+                            <a href="{% url 'ejemplares:detalle' ej.id_ejemplar %}" class="btn btn-outline-secondary" title="Ver detalle">
+                                <i class="bi bi-eye"></i>
+                            </a>
+                            <a href="{% url 'ejemplares:editar' ej.id_ejemplar %}" class="btn btn-outline-primary" title="Editar">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            {% if not ej.eliminado %}
+                                {% if ej.estado != 'prestado' %}
+                                <a href="{% url 'ejemplares:dar_baja' ej.id_ejemplar %}" class="btn btn-outline-danger" title="Dar de baja">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                                {% endif %}
+                            {% else %}
+                                <form method="post" action="{% url 'ejemplares:reactivar' ej.id_ejemplar %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-outline-success" title="Reactivar ejemplar">
+                                        <i class="bi bi-arrow-counterclockwise"></i>
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-muted">
+                        <i class="bi bi-inbox fs-1 d-block mb-2"></i>
+                        No se encontraron ejemplares físicos con los criterios seleccionados.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
