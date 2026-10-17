@@ -14,5 +14,6 @@ export const tokens = {
     clear: () => {
         localStorage.removeItem(ACCESS);
         localStorage.removeItem(REFRESH);
+        localStorage.removeItem("perfil");
     },
 };
