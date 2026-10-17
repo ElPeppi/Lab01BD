@@ -16,11 +16,11 @@ def _calcular_resumen_estados(queryset):
     """Calcula totales y porcentajes desglosados por estado y condición."""
     agregados = queryset.aggregate(
         total=Count("id_ejemplar"),
-        disponibles=Count("id_ejemplar", filter=Q(estado=Ejemplar.ESTADO_DISPONIBLE)),
-        prestados=Count("id_ejemplar", filter=Q(estado=Ejemplar.ESTADO_PRESTADO)),
-        perdidos=Count("id_ejemplar", filter=Q(estado=Ejemplar.ESTADO_PERDIDO)),
-        buenos=Count("id_ejemplar", filter=Q(condicion=Ejemplar.CONDICION_BUENO)),
-        danados=Count("id_ejemplar", filter=Q(condicion=Ejemplar.CONDICION_DANADO)),
+        disponibles=Count("id_ejemplar", filter=Q(estado=Ejemplar.ESTADO_DISPONIBLE, eliminado=False)),
+        prestados=Count("id_ejemplar", filter=Q(estado=Ejemplar.ESTADO_PRESTADO, eliminado=False)),
+        perdidos=Count("id_ejemplar", filter=Q(estado=Ejemplar.ESTADO_PERDIDO, eliminado=False)),
+        buenos=Count("id_ejemplar", filter=Q(condicion=Ejemplar.CONDICION_BUENO, eliminado=False)),
+        danados=Count("id_ejemplar", filter=Q(condicion=Ejemplar.CONDICION_DANADO, eliminado=False)),
     )
     total = agregados["total"] or 0
     agregados["pct_disponibles"] = round((agregados["disponibles"] / total) * 100, 1) if total else 0.0
@@ -46,11 +46,15 @@ def lista_ejemplares(request):
         if not mostrar_bajas:
             qs = qs.filter(eliminado=False)
         if q:
+            libros_por_autor = LibroAutor.objects.filter(
+                autor__nombre__icontains=q
+            ).values("libro_id")
             qs = qs.filter(
                 Q(codigo_barras__icontains=q)
                 | Q(ubicacion__icontains=q)
                 | Q(libro__titulo__icontains=q)
                 | Q(libro__isbn__icontains=q)
+                | Q(libro_id__in=libros_por_autor)
             )
         if libro:
             qs = qs.filter(libro=libro)
@@ -226,6 +230,13 @@ def reporte_inventario(request):
     )
     resumen_global = _calcular_resumen_estados(base_activos)
     resumen_global["dados_de_baja"] = Ejemplar.objects.filter(eliminado=True).count()
+    total_registrados = resumen_global["total"] + resumen_global["dados_de_baja"]
+    resumen_global["total_registrados"] = total_registrados
+    resumen_global["pct_activos"] = (
+        round((resumen_global["total"] / total_registrados) * 100, 1)
+        if total_registrados
+        else 0.0
+    )
 
     # Aplicar filtros sobre el listado y desglose
     ejemplares_filtrados = base_activos
@@ -249,11 +260,15 @@ def reporte_inventario(request):
         categoria_id = ""
 
     if q:
+        libros_por_autor = LibroAutor.objects.filter(
+            autor__nombre__icontains=q
+        ).values("libro_id")
         ejemplares_filtrados = ejemplares_filtrados.filter(
             Q(codigo_barras__icontains=q)
             | Q(ubicacion__icontains=q)
             | Q(libro__titulo__icontains=q)
             | Q(libro__isbn__icontains=q)
+            | Q(libro_id__in=libros_por_autor)
         )
 
     ejemplares_filtrados = ejemplares_filtrados.order_by("estado", "libro__titulo", "codigo_barras")
@@ -269,6 +284,7 @@ def reporte_inventario(request):
             | Q(isbn__icontains=q)
             | Q(ejemplar__codigo_barras__icontains=q)
             | Q(ejemplar__ubicacion__icontains=q)
+            | Q(id_libro__in=libros_por_autor)
         ).distinct()
 
     desglose_por_libro = (

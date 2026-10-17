@@ -11,9 +11,6 @@
         </p>
     </div>
     <div class="d-flex gap-2">
-        <a href="{% url 'ejemplares:api_inventario' %}{% if estado_filtro %}?estado={{ estado_filtro }}{% endif %}" target="_blank" class="btn btn-outline-secondary">
-            <i class="bi bi-filetype-json me-1"></i>Exportar JSON
-        </a>
         <a href="{% url 'ejemplares:crear' %}" class="btn btn-primary">
             <i class="bi bi-plus-lg me-1"></i>Registrar Ejemplar
         </a>
@@ -23,59 +20,49 @@
 <!-- Tarjetas de Resumen Global del Inventario -->
 <div class="row g-3 mb-4">
     <div class="col-md-3">
-        <a href="{% url 'ejemplares:reporte_inventario' %}" class="text-decoration-none">
-            <div class="card card-stat p-3 bg-white {% if not estado_filtro %}border border-primary border-2{% endif %}">
-                <div class="text-muted small fw-semibold text-uppercase">Total Inventario Activo</div>
-                <div class="d-flex justify-content-between align-items-baseline mt-1">
-                    <span class="fs-2 fw-bold text-dark">{{ resumen_global.total }}</span>
-                    <span class="small text-muted">100% ({{ resumen_global.dados_de_baja }} de baja)</span>
-                </div>
-                <div class="progress mt-2" style="height: 6px;">
-                    <div class="progress-bar bg-success" style="width: {{ resumen_global.pct_disponibles }}%"></div>
-                    <div class="progress-bar bg-warning" style="width: {{ resumen_global.pct_prestados }}%"></div>
-                    <div class="progress-bar bg-danger" style="width: {{ resumen_global.pct_perdidos }}%"></div>
-                </div>
+        <div class="card card-stat p-3 bg-white h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Total Inventario Activo</div>
+            <div class="d-flex justify-content-between align-items-baseline mt-1">
+                <span class="fs-2 fw-bold text-dark">{{ resumen_global.total }}</span>
+                <span class="badge bg-light text-dark border">{{ resumen_global.pct_activos }}% activo</span>
             </div>
-        </a>
+            <div class="small text-muted mt-2">
+                {{ resumen_global.dados_de_baja }} de baja
+            </div>
+        </div>
     </div>
 
     <div class="col-md-3">
-        <a href="?estado=disponible{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="text-decoration-none">
-            <div class="card card-stat p-3 bg-white {% if estado_filtro == 'disponible' %}border border-success border-2{% endif %}">
-                <div class="text-muted small fw-semibold text-uppercase">Disponibles</div>
-                <div class="d-flex justify-content-between align-items-baseline mt-1">
-                    <span class="fs-2 fw-bold text-success">{{ resumen_global.disponibles }}</span>
-                    <span class="badge badge-disponible">{{ resumen_global.pct_disponibles }}%</span>
-                </div>
-                <div class="small text-muted mt-2">Listos para préstamo en sala/estante</div>
+        <div class="card card-stat p-3 bg-white h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Disponibles</div>
+            <div class="d-flex justify-content-between align-items-baseline mt-1">
+                <span class="fs-2 fw-bold text-success">{{ resumen_global.disponibles }}</span>
+                <span class="badge badge-disponible">{{ resumen_global.pct_disponibles }}%</span>
             </div>
-        </a>
+            <div class="small text-muted mt-2">Listos para préstamo en sala/estante</div>
+        </div>
     </div>
 
     <div class="col-md-3">
-        <a href="?estado=prestado{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="text-decoration-none">
-            <div class="card card-stat p-3 bg-white {% if estado_filtro == 'prestado' %}border border-warning border-2{% endif %}">
-                <div class="text-muted small fw-semibold text-uppercase">Prestados</div>
-                <div class="d-flex justify-content-between align-items-baseline mt-1">
-                    <span class="fs-2 fw-bold text-warning">{{ resumen_global.prestados }}</span>
-                    <span class="badge badge-prestado">{{ resumen_global.pct_prestados }}%</span>
-                </div>
-                <div class="small text-muted mt-2">Actualmente en poder de usuarios</div>
+        <div class="card card-stat p-3 bg-white h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Prestados</div>
+            <div class="d-flex justify-content-between align-items-baseline mt-1">
+                <span class="fs-2 fw-bold text-warning">{{ resumen_global.prestados }}</span>
+                <span class="badge badge-prestado">{{ resumen_global.pct_prestados }}%</span>
             </div>
-        </a>
+            <div class="small text-muted mt-2">Actualmente en poder de usuarios</div>
+        </div>
     </div>
 
     <div class="col-md-3">
-        <a href="?estado=perdido{% if categoria_id %}&categoria={{ categoria_id }}{% endif %}{% if q %}&q={{ q }}{% endif %}" class="text-decoration-none">
-            <div class="card card-stat p-3 bg-white {% if estado_filtro == 'perdido' %}border border-danger border-2{% endif %}">
-                <div class="text-muted small fw-semibold text-uppercase">Perdidos</div>
-                <div class="d-flex justify-content-between align-items-baseline mt-1">
-                    <span class="fs-2 fw-bold text-danger">{{ resumen_global.perdidos }}</span>
-                    <span class="badge badge-perdido">{{ resumen_global.pct_perdidos }}%</span>
-                </div>
-                <div class="small text-muted mt-2">Extraviados ({{ resumen_global.danados }} con daño físico)</div>
+        <div class="card card-stat p-3 bg-white h-100">
+            <div class="text-muted small fw-semibold text-uppercase">Perdidos</div>
+            <div class="d-flex justify-content-between align-items-baseline mt-1">
+                <span class="fs-2 fw-bold text-danger">{{ resumen_global.perdidos }}</span>
+                <span class="badge badge-perdido">{{ resumen_global.pct_perdidos }}%</span>
             </div>
-        </a>
+            <div class="small text-muted mt-2">Extraviados ({{ resumen_global.danados }} con daño físico)</div>
+        </div>
     </div>
 </div>
 
@@ -116,7 +103,7 @@
 
         <div class="col-md-3">
             <label class="form-label small fw-semibold mb-1">Búsqueda rápida</label>
-            <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Título, ISBN, código o estante...">
+            <input type="text" name="q" value="{{ q }}" class="form-control" placeholder="Título, autor, ISBN, código o estante...">
         </div>
 
         <div class="col-md-1 d-grid">

@@ -69,7 +69,7 @@ class FiltroEjemplarForm(forms.Form):
         widget=forms.TextInput(
             attrs={
                 "class": "form-control",
-                "placeholder": "Código de barras, título, ISBN o ubicación...",
+                "placeholder": "Código, título, autor, ISBN o ubicación...",
             }
         ),
     )
