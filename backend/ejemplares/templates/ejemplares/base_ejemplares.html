@@ -47,17 +47,56 @@
             background-color: #ffedd5;
             color: #9a3412;
         }
+        html, body {
+            overflow-x: hidden;
+        }
         .table-container {
             background: #ffffff;
             border-radius: 0.75rem;
             box-shadow: 0 2px 10px rgba(15, 23, 42, 0.05);
-            overflow: hidden;
+            width: 100%;
+        }
+        .container-amplio {
+            width: 100%;
+            max-width: 1440px;
+            padding-left: 1.25rem;
+            padding-right: 1.25rem;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .badge-categoria {
+            white-space: normal !important;
+            text-align: left;
+            line-height: 1.35;
+            display: inline-block;
+            word-break: break-word;
+        }
+        .min-w-0 {
+            min-width: 0 !important;
+        }
+        .book-cover-sm {
+            width: 38px;
+            height: 56px;
+            object-fit: cover;
+            border-radius: 4px;
+            box-shadow: 0 2px 5px rgba(15, 23, 42, 0.18);
+            flex-shrink: 0;
+            background-color: #e2e8f0;
+        }
+        .book-cover-lg {
+            width: 96px;
+            height: 142px;
+            object-fit: cover;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(15, 23, 42, 0.22);
+            flex-shrink: 0;
+            background-color: #e2e8f0;
         }
     </style>
 </head>
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark navbar-biblioteca shadow-sm mb-4">
-        <div class="container">
+        <div class="container-amplio d-flex flex-wrap align-items-center justify-content-between">
             <a class="navbar-brand fw-bold d-flex align-items-center gap-2" href="{% url 'ejemplares:lista' %}">
                 <i class="bi bi-journal-bookmark-fill"></i>
                 <span>Biblioteca Universitaria · Ejemplares</span>
@@ -87,7 +126,7 @@
         </div>
     </nav>
 
-    <main class="container pb-5">
+    <main class="container-amplio pb-5">
         {% if messages %}
             {% for message in messages %}
                 <div class="alert alert-{% if message.tags == 'error' %}danger{% elif message.tags %}{{ message.tags }}{% else %}info{% endif %} alert-dismissible fade show shadow-sm" role="alert">

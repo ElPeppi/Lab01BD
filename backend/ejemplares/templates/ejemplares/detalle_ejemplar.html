@@ -1,13 +1,14 @@
 {% extends "ejemplares/base_ejemplares.html" %}
+{% load portadas %}
 
 {% block title %}Ejemplar {{ ejemplar.codigo_barras }} - Detalle{% endblock %}
 
 {% block content %}
-<div class="mb-3 d-flex justify-content-between align-items-center">
+<div class="mb-3 d-flex flex-wrap justify-content-between align-items-center gap-2">
     <a href="{% url 'ejemplares:lista' %}" class="text-decoration-none small">
         <i class="bi bi-arrow-left me-1"></i>Volver al listado de ejemplares
     </a>
-    <div class="d-flex gap-2">
+    <div class="d-flex flex-wrap gap-2">
         <a href="{% url 'ejemplares:editar' ejemplar.id_ejemplar %}" class="btn btn-sm btn-primary">
             <i class="bi bi-pencil me-1"></i>Editar Ejemplar
         </a>
@@ -28,14 +29,14 @@
 
 <div class="row g-4">
     <!-- Ficha del Ejemplar Físico -->
-    <div class="col-lg-5">
+    <div class="col-12 col-lg-5">
         <div class="card card-stat p-4 bg-white h-100">
-            <div class="d-flex justify-content-between align-items-start mb-3">
-                <div>
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                <div class="min-w-0">
                     <span class="text-muted small text-uppercase fw-semibold">Código de Barras</span>
                     <h2 class="h4 fw-bold font-monospace mb-0">{{ ejemplar.codigo_barras }}</h2>
                 </div>
-                <div>
+                <div class="flex-shrink-0">
                     {% if ejemplar.eliminado %}
                         <span class="badge bg-secondary">Dado de Baja</span>
                     {% elif ejemplar.estado == 'disponible' %}
@@ -48,14 +49,29 @@
                 </div>
             </div>
 
-            <hr>
+            <div class="d-flex gap-3 align-items-start bg-light rounded-3 p-3 mb-3 overflow-hidden">
+                <img src="{{ ejemplar.libro|url_portada }}"
+                     alt="Portada de {{ ejemplar.libro.titulo }}"
+                     class="book-cover-lg"
+                     onerror="this.onerror=null;this.src='{{ ejemplar.libro|svg_portada_fallback }}';">
+                <div class="flex-grow-1 min-w-0">
+                    <div class="fw-bold fs-6 mb-1 text-break">{{ ejemplar.libro.titulo }}</div>
+                    <div class="small text-muted mb-2 text-break">{{ ejemplar.libro.editorial.nombre }} · {{ ejemplar.libro.anio }}</div>
+                    <div class="mb-2">
+                        <span class="badge bg-white text-dark border badge-categoria">{{ ejemplar.libro.categoria.nombre }}</span>
+                    </div>
+                    {% if ejemplar.libro.descripcion %}
+                        <p class="small text-secondary mb-0 text-break">{{ ejemplar.libro.descripcion|truncatechars:140 }}</p>
+                    {% endif %}
+                </div>
+            </div>
 
             <dl class="row mb-0">
                 <dt class="col-sm-5 text-muted">ID Interno:</dt>
                 <dd class="col-sm-7">#{{ ejemplar.id_ejemplar }}</dd>
 
                 <dt class="col-sm-5 text-muted">Ubicación Física:</dt>
-                <dd class="col-sm-7 fw-semibold"><i class="bi bi-geo-alt me-1"></i>{{ ejemplar.ubicacion }}</dd>
+                <dd class="col-sm-7 fw-semibold text-break"><i class="bi bi-geo-alt me-1"></i>{{ ejemplar.ubicacion }}</dd>
 
                 <dt class="col-sm-5 text-muted">Condición Física:</dt>
                 <dd class="col-sm-7">
@@ -66,22 +82,13 @@
                     {% endif %}
                 </dd>
 
-                <dt class="col-sm-5 text-muted">Título Asociado:</dt>
-                <dd class="col-sm-7 fw-semibold">{{ ejemplar.libro.titulo }}</dd>
-
                 <dt class="col-sm-5 text-muted">ISBN:</dt>
                 <dd class="col-sm-7 font-monospace">{{ ejemplar.libro.isbn }}</dd>
-
-                <dt class="col-sm-5 text-muted">Editorial / Año:</dt>
-                <dd class="col-sm-7">{{ ejemplar.libro.editorial.nombre }} ({{ ejemplar.libro.anio }})</dd>
-
-                <dt class="col-sm-5 text-muted">Categoría:</dt>
-                <dd class="col-sm-7">{{ ejemplar.libro.categoria.nombre }}</dd>
 
                 <dt class="col-sm-5 text-muted">Autor(es):</dt>
                 <dd class="col-sm-7">
                     {% for autor in autores %}
-                        <span class="badge bg-light text-dark border">{{ autor.nombre }}</span>
+                        <span class="badge bg-light text-dark border badge-categoria mb-1">{{ autor.nombre }}</span>
                     {% empty %}
                         <span class="text-muted">Sin autores registrados</span>
                     {% endfor %}
@@ -91,7 +98,7 @@
     </div>
 
     <!-- Historial de Préstamos y Otros Ejemplares del mismo Libro -->
-    <div class="col-lg-7">
+    <div class="col-12 col-lg-7">
         <div class="card card-stat p-4 bg-white mb-4">
             <h3 class="h5 fw-bold mb-3">
                 <i class="bi bi-clock-history me-1 text-primary"></i>Historial de Préstamos de este Ejemplar

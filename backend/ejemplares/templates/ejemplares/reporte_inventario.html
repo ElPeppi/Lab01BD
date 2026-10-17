@@ -1,4 +1,5 @@
 {% extends "ejemplares/base_ejemplares.html" %}
+{% load portadas %}
 
 {% block title %}Reporte de Inventario por Estado - Biblioteca{% endblock %}
 
@@ -151,16 +152,25 @@
                     <tbody>
                         {% for ej in ejemplares %}
                         <tr>
-                            <td class="ps-3">
+                            <td class="ps-3 text-nowrap">
                                 <a href="{% url 'ejemplares:detalle' ej.id_ejemplar %}" class="fw-bold font-monospace text-decoration-none">
                                     {{ ej.codigo_barras }}
                                 </a>
                             </td>
-                            <td class="fw-semibold">{{ ej.libro.titulo }}</td>
-                            <td class="font-monospace small">{{ ej.libro.isbn }}</td>
-                            <td><span class="badge bg-light text-dark border">{{ ej.libro.categoria.nombre }}</span></td>
-                            <td><i class="bi bi-geo-alt text-secondary me-1"></i>{{ ej.ubicacion }}</td>
                             <td>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="{{ ej.libro|url_portada }}"
+                                         alt="Portada de {{ ej.libro.titulo }}"
+                                         class="book-cover-sm"
+                                         loading="lazy"
+                                         onerror="this.onerror=null;this.src='{{ ej.libro|svg_portada_fallback }}';">
+                                    <span class="fw-semibold min-w-0 text-break">{{ ej.libro.titulo }}</span>
+                                </div>
+                            </td>
+                            <td class="font-monospace small text-nowrap">{{ ej.libro.isbn }}</td>
+                            <td><span class="badge bg-light text-dark border badge-categoria">{{ ej.libro.categoria.nombre }}</span></td>
+                            <td class="small"><i class="bi bi-geo-alt text-secondary me-1"></i>{{ ej.ubicacion }}</td>
+                            <td class="text-nowrap">
                                 {% if ej.estado == 'disponible' %}
                                     <span class="badge badge-disponible">Disponible</span>
                                 {% elif ej.estado == 'prestado' %}
@@ -169,7 +179,7 @@
                                     <span class="badge badge-perdido">Perdido</span>
                                 {% endif %}
                             </td>
-                            <td>
+                            <td class="text-nowrap">
                                 {% if ej.condicion == 'bueno' %}
                                     <span class="badge badge-bueno">Bueno</span>
                                 {% else %}
@@ -198,24 +208,33 @@
                     <thead class="table-light">
                         <tr>
                             <th class="ps-3">Libro</th>
-                            <th>ISBN</th>
+                            <th class="text-nowrap">ISBN</th>
                             <th>Categoría</th>
-                            <th class="text-center">Total Copias</th>
-                            <th class="text-center text-success">Disponibles</th>
-                            <th class="text-center text-warning">Prestados</th>
-                            <th class="text-center text-danger">Perdidos</th>
-                            <th class="text-center">Dañados</th>
+                            <th class="text-center text-nowrap">Total Copias</th>
+                            <th class="text-center text-success text-nowrap">Disponibles</th>
+                            <th class="text-center text-warning text-nowrap">Prestados</th>
+                            <th class="text-center text-danger text-nowrap">Perdidos</th>
+                            <th class="text-center text-nowrap">Dañados</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for libro in desglose_por_libro %}
                         <tr>
                             <td class="ps-3">
-                                <div class="fw-semibold">{{ libro.titulo }}</div>
-                                <div class="small text-muted">{{ libro.editorial.nombre }} ({{ libro.anio }})</div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="{{ libro|url_portada }}"
+                                         alt="Portada de {{ libro.titulo }}"
+                                         class="book-cover-sm"
+                                         loading="lazy"
+                                         onerror="this.onerror=null;this.src='{{ libro|svg_portada_fallback }}';">
+                                    <div class="min-w-0">
+                                        <div class="fw-semibold text-break">{{ libro.titulo }}</div>
+                                        <div class="small text-muted">{{ libro.editorial.nombre }} ({{ libro.anio }})</div>
+                                    </div>
+                                </div>
                             </td>
-                            <td class="font-monospace small">{{ libro.isbn }}</td>
-                            <td><span class="badge bg-light text-dark border">{{ libro.categoria.nombre }}</span></td>
+                            <td class="font-monospace small text-nowrap">{{ libro.isbn }}</td>
+                            <td><span class="badge bg-light text-dark border badge-categoria">{{ libro.categoria.nombre }}</span></td>
                             <td class="text-center fw-bold">{{ libro.total_ejemplares }}</td>
                             <td class="text-center">
                                 <span class="badge badge-disponible">{{ libro.disponibles }}</span>

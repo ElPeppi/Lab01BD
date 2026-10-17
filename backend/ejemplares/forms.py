@@ -10,6 +10,16 @@ class LibroChoiceField(forms.ModelChoiceField):
         return f"{obj.titulo} (ISBN: {obj.isbn})"
 
 
+class LibroFiltroChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.titulo
+
+
+class CategoriaChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.nombre
+
+
 class EjemplarForm(forms.ModelForm):
     libro = LibroChoiceField(
         queryset=Libro.objects.none(),
@@ -73,13 +83,13 @@ class FiltroEjemplarForm(forms.Form):
             }
         ),
     )
-    libro = forms.ModelChoiceField(
+    libro = LibroFiltroChoiceField(
         queryset=Libro.objects.none(),
         required=False,
         empty_label="Todos los libros",
         widget=forms.Select(attrs={"class": "form-select"}),
     )
-    categoria = forms.ModelChoiceField(
+    categoria = CategoriaChoiceField(
         queryset=Categoria.objects.none(),
         required=False,
         empty_label="Todas las categorías",
