@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
+import { Cargando } from "./Estados";
 import "./Layout.css";
 
 type ItemMenu = { to: string; texto: string };
@@ -101,7 +102,10 @@ export default function Layout() {
       </aside>
 
       <main className="app-contenido">
-        <Outlet />
+        {/* Mientras llega el código de la pantalla (lazy), el menú sigue visible */}
+        <Suspense fallback={<Cargando />}>
+          <Outlet />
+        </Suspense>
       </main>
     </div>
   );

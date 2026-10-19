@@ -22,6 +22,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/catalogo/', include('catalogo.urls')),
     path('api/prestamos/', include('prestamos.urls')),
+    path('api/ejemplares/', include('ejemplares.api_urls')),
     path('ejemplares/', include('ejemplares.urls', namespace='ejemplares')),
     path('reportes/inventario/', ejemplares_views.reporte_inventario,
          name='reporte_inventario_global'),

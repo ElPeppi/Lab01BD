@@ -1,7 +1,10 @@
-from django.shortcuts import render
-from django.db.models import Count, Q
+from django.db.models import Count, IntegerField, OuterRef, Q, Subquery
+from django.db.models.functions import Coalesce
 from rest_framework import status, viewsets
 from rest_framework.response import Response
+
+from prestamos.servicios import ejemplares_libres
+from usuarios.permissions import SoloLecturaOEmpleado
 
 from .models import Autor, Categoria, Editorial, Libro
 from .serializers import (
@@ -10,6 +13,8 @@ from .serializers import (
 
 
 class BorradoSeguroMixin:
+    # Consultar: cualquier sesión. Crear/editar/borrar: solo personal.
+    permission_classes = [SoloLecturaOEmpleado]
 
     def destroy(self, request, *args, **kwargs):
         objeto = self.get_object()
@@ -51,20 +56,24 @@ class LibroViewSet(viewsets.ModelViewSet):
     CRUD de libros + búsqueda
     """
     serializer_class = LibroSerializer
+    permission_classes = [SoloLecturaOEmpleado]
 
     def get_queryset(self):
         ejemplares_vivos = Q(ejemplar__eliminado=False)
+        # "Disponibles" = los que se pueden prestar ya: misma regla que usa la solicitud
+        # de préstamo (excluye los que tienen una solicitud pendiente), así el número que
+        # ve el usuario coincide con lo que el backend le va a dejar pedir.
+        libres = (
+            ejemplares_libres().filter(libro=OuterRef("pk"))
+            .order_by().values("libro").annotate(n=Count("pk")).values("n")
+        )
         qs = (
             Libro.objects.filter(eliminado=False)
             .select_related("editorial", "categoria")
             .prefetch_related("autores")
             .annotate(
                 ejemplares_total=Count("ejemplar", filter=ejemplares_vivos, distinct=True),
-                ejemplares_disponibles=Count(
-                    "ejemplar",
-                    filter=ejemplares_vivos & Q(ejemplar__estado="disponible"),
-                    distinct=True,
-                ),
+                ejemplares_disponibles=Coalesce(Subquery(libres, output_field=IntegerField()), 0),
             )
             .order_by("titulo")
         )

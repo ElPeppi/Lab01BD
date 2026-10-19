@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from catalogo.models import Libro
 from ejemplares.models import Ejemplar
-from usuarios.models import Empleado, Usuario
+from usuarios.models import Usuario
 
 from .models import Prestamo
 
@@ -35,8 +35,12 @@ class PrestamoSerializer(serializers.ModelSerializer):
 
 
 class SolicitudSerializer(serializers.Serializer):
-    """El usuario pide un libro (se le asigna un ejemplar libre) o un ejemplar concreto."""
-    usuario = serializers.PrimaryKeyRelatedField(queryset=Usuario.objects.all())
+    """
+    Se pide un libro (se asigna un ejemplar libre) o un ejemplar concreto.
+    Si quien llama es un usuario, el préstamo es para él (sale del token y se ignora este campo);
+    solo el personal indica `usuario` para registrar una solicitud a nombre de alguien.
+    """
+    usuario = serializers.PrimaryKeyRelatedField(queryset=Usuario.objects.all(), required=False)
     libro = serializers.PrimaryKeyRelatedField(queryset=Libro.objects.all(), required=False)
     ejemplar = serializers.PrimaryKeyRelatedField(queryset=Ejemplar.objects.all(), required=False)
 
@@ -47,12 +51,11 @@ class SolicitudSerializer(serializers.Serializer):
 
 
 class AprobacionSerializer(serializers.Serializer):
-    # Sin fechas se presta hoy y vence según la política del rol del usuario.
-    empleado = serializers.PrimaryKeyRelatedField(queryset=Empleado.objects.all())
+    # El empleado que aprueba sale del token. Sin fechas: se presta hoy y vence según el rol.
     fecha_prestamo = serializers.DateField(required=False)
     fecha_vencimiento = serializers.DateField(required=False)
 
 
 class RechazoSerializer(serializers.Serializer):
-    empleado = serializers.PrimaryKeyRelatedField(queryset=Empleado.objects.all())
+    # El empleado que rechaza sale del token
     motivo_rechazo = serializers.CharField(max_length=255)

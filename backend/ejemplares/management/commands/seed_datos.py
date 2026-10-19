@@ -46,7 +46,7 @@ LIBROS_SEED = [
         "ejemplares": [
             ("BC-0001", "disponible", "bueno"),
             ("BC-0002", "disponible", "bueno"),
-            ("BC-0003", "prestado", "bueno"),
+            ("BC-0003", "disponible", "bueno"),
             ("BC-0004", "disponible", "danado"),
         ],
     },
@@ -61,7 +61,7 @@ LIBROS_SEED = [
         "ubicacion_base": "Sala Literatura Latinoamericana - Pasillo C - Estante 2",
         "ejemplares": [
             ("BC-0005", "disponible", "bueno"),
-            ("BC-0006", "prestado", "bueno"),
+            ("BC-0006", "disponible", "bueno"),
             ("BC-0007", "disponible", "bueno"),
         ],
     },
@@ -106,7 +106,7 @@ LIBROS_SEED = [
         "ubicacion_base": "Sala Literatura Universal - Pasillo B - Estante 3",
         "ejemplares": [
             ("BC-0014", "disponible", "bueno"),
-            ("BC-0015", "prestado", "bueno"),
+            ("BC-0015", "disponible", "bueno"),
             ("BC-0016", "disponible", "bueno"),
         ],
     },
@@ -122,7 +122,7 @@ LIBROS_SEED = [
         "ejemplares": [
             ("BC-0017", "disponible", "bueno"),
             ("BC-0018", "disponible", "bueno"),
-            ("BC-0019", "prestado", "bueno"),
+            ("BC-0019", "disponible", "bueno"),
         ],
     },
     {
@@ -151,7 +151,7 @@ LIBROS_SEED = [
         "ubicacion_base": "Sala Ciencias Naturales - Estante BIO-1",
         "ejemplares": [
             ("BC-0023", "disponible", "bueno"),
-            ("BC-0024", "prestado", "bueno"),
+            ("BC-0024", "disponible", "bueno"),
             ("BC-0025", "disponible", "danado"),
         ],
     },
@@ -196,7 +196,7 @@ LIBROS_SEED = [
         "ubicacion_base": "Sala Narrativa Contemporánea - Estante NC-2",
         "ejemplares": [
             ("BC-0032", "disponible", "bueno"),
-            ("BC-0033", "prestado", "bueno"),
+            ("BC-0033", "disponible", "bueno"),
             ("BC-0034", "disponible", "bueno"),
             ("BC-0035", "disponible", "bueno"),
         ],
@@ -243,7 +243,7 @@ LIBROS_SEED = [
         "ejemplares": [
             ("BC-0042", "disponible", "bueno"),
             ("BC-0043", "disponible", "bueno"),
-            ("BC-0044", "prestado", "bueno"),
+            ("BC-0044", "disponible", "bueno"),
         ],
     },
     {
@@ -257,7 +257,7 @@ LIBROS_SEED = [
         "ubicacion_base": "Sala Clásicos Universales - Pasillo K - Estante 1",
         "ejemplares": [
             ("BC-0045", "disponible", "bueno"),
-            ("BC-0046", "prestado", "bueno"),
+            ("BC-0046", "disponible", "bueno"),
             ("BC-0047", "disponible", "bueno"),
         ],
     },
@@ -288,7 +288,7 @@ LIBROS_SEED = [
         "ejemplares": [
             ("BC-0051", "disponible", "bueno"),
             ("BC-0052", "disponible", "bueno"),
-            ("BC-0053", "prestado", "bueno"),
+            ("BC-0053", "disponible", "bueno"),
         ],
     },
     {
@@ -332,7 +332,7 @@ LIBROS_SEED = [
         "ubicacion_base": "Sala Novela Rusa y Clásicos - Estante R-1",
         "ejemplares": [
             ("BC-0060", "disponible", "bueno"),
-            ("BC-0061", "prestado", "bueno"),
+            ("BC-0061", "disponible", "bueno"),
             ("BC-0062", "disponible", "bueno"),
         ],
     },
@@ -377,7 +377,7 @@ LIBROS_SEED = [
         "ubicacion_base": "Sala Literatura Universal - Pasillo B - Estante 1",
         "ejemplares": [
             ("BC-0069", "disponible", "bueno"),
-            ("BC-0070", "prestado", "bueno"),
+            ("BC-0070", "disponible", "bueno"),
             ("BC-0071", "disponible", "bueno"),
             ("BC-0072", "disponible", "danado"),
         ],
@@ -409,7 +409,7 @@ LIBROS_SEED = [
         "ejemplares": [
             ("BC-0076", "disponible", "bueno"),
             ("BC-0077", "disponible", "bueno"),
-            ("BC-0078", "prestado", "bueno"),
+            ("BC-0078", "disponible", "bueno"),
         ],
     },
     {
@@ -468,7 +468,7 @@ LIBROS_SEED = [
         "ubicacion_base": "Sala Ficción y Distopías - Estante D-2",
         "ejemplares": [
             ("BC-0088", "disponible", "bueno"),
-            ("BC-0089", "prestado", "bueno"),
+            ("BC-0089", "disponible", "bueno"),
             ("BC-0090", "disponible", "bueno"),
         ],
     },

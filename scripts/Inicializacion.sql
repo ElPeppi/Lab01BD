@@ -1,35 +1,22 @@
-create database biblioteca;
+-- =============================================================================
+-- LABORATORIO 01 - BASES DE DATOS (Uninorte) - BibliotecaUN
+-- Script 1 de 4: estructura (DDL). Orden de ejecución:
+--   1. Inicializacion.sql   (este: crea la BD y las 13 tablas)
+--   2. seed_datos.sql       (catálogo, ejemplares, usuarios y empleados)
+--   3. seed_auth.sql        (contraseñas de prueba con hash real)
+--   4. seed_prestamos.sql   (préstamos de ejemplo + conciliación de estados)
+-- Los usuarios de MySQL del grupo NO se crean aquí (ver usuarios_bd.example.sql):
+-- las contraseñas no deben quedar en el repositorio.
+-- =============================================================================
 
-use bibilioteca;
+SET NAMES utf8mb4;
+
+CREATE DATABASE IF NOT EXISTS biblioteca CHARACTER SET utf8mb4;
+USE biblioteca;
+
 DROP TABLE IF EXISTS multa, devolucion, prestamo, ejemplar, libro_autor,
   empleado, usuario, libro, configuracion, politica_prestamo,
   autor, categoria, editorial;
-  
-CREATE USER 'majo'@'%' IDENTIFIED BY 'Majo123890'
-  REQUIRE SSL
-  WITH MAX_USER_CONNECTIONS 5;
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES
-  ON biblioteca.* TO 'majo'@'%';
-  
-CREATE USER 'jader'@'%' IDENTIFIED BY 'Jader567123'
-  REQUIRE SSL
-  WITH MAX_USER_CONNECTIONS 5;
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES
-  ON biblioteca.* TO 'jader'@'%';
-  
-  CREATE USER 'eliud'@'%' IDENTIFIED BY 'Eliud789345'
-  REQUIRE SSL
-  WITH MAX_USER_CONNECTIONS 5;
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES
-  ON biblioteca.* TO 'eliud'@'%';
-  
-  CREATE USER 'nati'@'%' IDENTIFIED BY 'Nati876432'
-  REQUIRE SSL
-  WITH MAX_USER_CONNECTIONS 5;
-GRANT SELECT, INSERT, UPDATE, DELETE, CREATE, ALTER, DROP, INDEX, REFERENCES
-  ON biblioteca.* TO 'nati'@'%';
-
-
 
 CREATE TABLE editorial (
 	id_editorial INT AUTO_INCREMENT PRIMARY KEY,

@@ -10,15 +10,38 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 import os
+import secrets
+import warnings
 from pathlib import Path
-from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
 from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 load_dotenv()
-SECRET_KEY = os.getenv("SECRET_KEY") or "django-insecure-lab01-bd-uninorte-2026"
 DEBUG = True
+
+
+def _env_obligatoria(nombre):
+    """Lee una variable del .env; si falta, falla con un mensaje que dice qué agregar."""
+    valor = os.getenv(nombre)
+    if not valor:
+        raise ImproperlyConfigured(
+            f"Falta la variable {nombre} en backend/.env (mira backend/.env.example)."
+        )
+    return valor
+
+
+# SECRET_KEY firma los JWT: si fuera un valor fijo publicado en el repo, cualquiera podría
+# fabricar un token de admin. Sin .env, en desarrollo se usa una clave aleatoria por arranque
+# (los tokens dejan de servir al reiniciar, pero nadie puede falsificarlos).
+SECRET_KEY = os.getenv("SECRET_KEY")
+if not SECRET_KEY:
+    if not DEBUG:
+        raise ImproperlyConfigured("Falta SECRET_KEY en backend/.env.")
+    SECRET_KEY = secrets.token_urlsafe(50)
+    warnings.warn("SECRET_KEY no está en backend/.env: se usa una temporal (las sesiones se cierran al reiniciar).")
 ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
 
@@ -74,9 +97,10 @@ DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.mysql",
         "NAME": os.getenv("DB_NAME") or "biblioteca",
-        "USER": os.getenv("DB_USER") or "majo",
-        "PASSWORD": os.getenv("DB_PASSWORD") or "Majo123890",
-        "HOST": os.getenv("DB_HOST") or "localhost",
+        # Sin valores por defecto: las credenciales viven solo en backend/.env (nunca en el repo)
+        "USER": _env_obligatoria("DB_USER"),
+        "PASSWORD": _env_obligatoria("DB_PASSWORD"),
+        "HOST": _env_obligatoria("DB_HOST"),
         "PORT": os.getenv("DB_PORT") or "3306",
         # RDS está lejos: reutilizar la conexión evita repetir DNS + SSL en cada petición
         "CONN_MAX_AGE": 60,

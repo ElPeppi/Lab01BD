@@ -14,8 +14,5 @@ urlpatterns = [
     path("<int:pk>/reactivar/", views.reactivar_ejemplar, name="reactivar"),
     # Reporte de Inventario por Estado
     path("inventario/", views.reporte_inventario, name="reporte_inventario"),
-    # Endpoints JSON / API
-    path("api/", views.api_ejemplares, name="api_lista"),
-    path("api/<int:pk>/", views.api_detalle_ejemplar, name="api_detalle"),
-    path("api/inventario/", views.api_reporte_inventario, name="api_inventario"),
+    # Los endpoints JSON viven en api_urls.py, montados en /api/ejemplares/
 ]

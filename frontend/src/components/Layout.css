@@ -96,7 +96,8 @@
 
 /* ---------- Celular / tablet: menú lateral deslizable (off-canvas) ---------- */
 @media (max-width: 800px) {
-  .app { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  /* minmax(0, 1fr): sin esto, una tabla ancha estira la columna y aparece scroll horizontal */
+  .app { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto 1fr; }
 
   .app-barra {
     position: sticky;

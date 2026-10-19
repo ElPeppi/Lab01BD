@@ -5,7 +5,10 @@
 -- Ejecutar después de scripts/Inicializacion.sql
 -- =============================================================================
 
+SET NAMES utf8mb4;
 USE biblioteca;
+-- Todos los ejemplares arrancan disponibles: 'prestado' solo lo pone un préstamo aprobado
+-- (seed_prestamos.sql crea los de ejemplo), así el inventario nunca contradice a los préstamos.
 
 -- 1. Políticas de préstamo y Configuración
 INSERT IGNORE INTO politica_prestamo (rol, dias_prestamo, max_prestamos) VALUES
@@ -146,11 +149,11 @@ INSERT IGNORE INTO libro_autor (id_libro, id_autor) VALUES
 INSERT INTO ejemplar (codigo_barras, ubicacion, estado, condicion, id_libro, eliminado) VALUES
 ('BC-0001', 'Sala Literatura Universal - Pasillo B - Estante 1', 'disponible', 'bueno', 1, FALSE),
 ('BC-0002', 'Sala Literatura Universal - Pasillo B - Estante 1', 'disponible', 'bueno', 1, FALSE),
-('BC-0003', 'Sala Literatura Universal - Pasillo B - Estante 1', 'prestado',   'bueno', 1, FALSE),
+('BC-0003', 'Sala Literatura Universal - Pasillo B - Estante 1', 'disponible', 'bueno', 1, FALSE),
 ('BC-0004', 'Sala Literatura Universal - Pasillo B - Estante 1', 'disponible', 'danado', 1, FALSE),
 
 ('BC-0005', 'Sala Literatura Latinoamericana - Pasillo C - Estante 2', 'disponible', 'bueno', 2, FALSE),
-('BC-0006', 'Sala Literatura Latinoamericana - Pasillo C - Estante 2', 'prestado',   'bueno', 2, FALSE),
+('BC-0006', 'Sala Literatura Latinoamericana - Pasillo C - Estante 2', 'disponible', 'bueno', 2, FALSE),
 ('BC-0007', 'Sala Literatura Latinoamericana - Pasillo C - Estante 2', 'disponible', 'bueno', 2, FALSE),
 
 ('BC-0008', 'Sala Caribe y Colombia - Pasillo A - Estante 1', 'disponible', 'bueno', 3, FALSE),
@@ -162,19 +165,19 @@ INSERT INTO ejemplar (codigo_barras, ubicacion, estado, condicion, id_libro, eli
 ('BC-0013', 'Sala Narrativa Contemporánea - Estante Z-9', 'disponible', 'danado', 4, FALSE),
 
 ('BC-0014', 'Sala Literatura Universal - Pasillo B - Estante 3', 'disponible', 'bueno', 5, FALSE),
-('BC-0015', 'Sala Literatura Universal - Pasillo B - Estante 3', 'prestado',   'bueno', 5, FALSE),
+('BC-0015', 'Sala Literatura Universal - Pasillo B - Estante 3', 'disponible', 'bueno', 5, FALSE),
 ('BC-0016', 'Sala Literatura Universal - Pasillo B - Estante 3', 'disponible', 'bueno', 5, FALSE),
 
 ('BC-0017', 'Sala Humanidades y Filosofía - Estante H-2', 'disponible', 'bueno', 6, FALSE),
 ('BC-0018', 'Sala Humanidades y Filosofía - Estante H-2', 'disponible', 'bueno', 6, FALSE),
-('BC-0019', 'Sala Humanidades y Filosofía - Estante H-2', 'prestado',   'bueno', 6, FALSE),
+('BC-0019', 'Sala Humanidades y Filosofía - Estante H-2', 'disponible', 'bueno', 6, FALSE),
 
 ('BC-0020', 'Sala Ficción y Distopías - Estante D-1', 'disponible', 'bueno', 7, FALSE),
 ('BC-0021', 'Sala Ficción y Distopías - Estante D-1', 'disponible', 'bueno', 7, FALSE),
 ('BC-0022', 'Sala Ficción y Distopías - Estante D-1', 'disponible', 'bueno', 7, FALSE),
 
 ('BC-0023', 'Sala Ciencias Naturales - Estante BIO-1', 'disponible', 'bueno', 8, FALSE),
-('BC-0024', 'Sala Ciencias Naturales - Estante BIO-1', 'prestado',   'bueno', 8, FALSE),
+('BC-0024', 'Sala Ciencias Naturales - Estante BIO-1', 'disponible', 'bueno', 8, FALSE),
 ('BC-0025', 'Sala Ciencias Naturales - Estante BIO-1', 'disponible', 'danado', 8, FALSE),
 
 ('BC-0026', 'Sala Poesía y Teatro - Estante P-3', 'disponible', 'bueno', 9, FALSE),
@@ -186,7 +189,7 @@ INSERT INTO ejemplar (codigo_barras, ubicacion, estado, condicion, id_libro, eli
 ('BC-0031', 'Sala Narrativa Contemporánea - Estante NC-2', 'disponible', 'bueno', 10, FALSE),
 
 ('BC-0032', 'Sala Narrativa Contemporánea - Estante NC-2', 'disponible', 'bueno', 11, FALSE),
-('BC-0033', 'Sala Narrativa Contemporánea - Estante NC-2', 'prestado',   'bueno', 11, FALSE),
+('BC-0033', 'Sala Narrativa Contemporánea - Estante NC-2', 'disponible', 'bueno', 11, FALSE),
 ('BC-0034', 'Sala Narrativa Contemporánea - Estante NC-2', 'disponible', 'bueno', 11, FALSE),
 ('BC-0035', 'Sala Narrativa Contemporánea - Estante NC-2', 'disponible', 'bueno', 11, FALSE),
 
@@ -200,10 +203,10 @@ INSERT INTO ejemplar (codigo_barras, ubicacion, estado, condicion, id_libro, eli
 
 ('BC-0042', 'Sala Literatura Universal - Pasillo B - Estante 2', 'disponible', 'bueno', 14, FALSE),
 ('BC-0043', 'Sala Literatura Universal - Pasillo B - Estante 2', 'disponible', 'bueno', 14, FALSE),
-('BC-0044', 'Sala Literatura Universal - Pasillo B - Estante 2', 'prestado',   'bueno', 14, FALSE),
+('BC-0044', 'Sala Literatura Universal - Pasillo B - Estante 2', 'disponible', 'bueno', 14, FALSE),
 
 ('BC-0045', 'Sala Clásicos Universales - Pasillo K - Estante 1', 'disponible', 'bueno', 15, FALSE),
-('BC-0046', 'Sala Clásicos Universales - Pasillo K - Estante 1', 'prestado',   'bueno', 15, FALSE),
+('BC-0046', 'Sala Clásicos Universales - Pasillo K - Estante 1', 'disponible', 'bueno', 15, FALSE),
 ('BC-0047', 'Sala Clásicos Universales - Pasillo K - Estante 1', 'disponible', 'bueno', 15, FALSE),
 
 ('BC-0048', 'Sala Clásicos Universales - Pasillo K - Estante 1', 'disponible', 'bueno', 16, FALSE),
@@ -212,7 +215,7 @@ INSERT INTO ejemplar (codigo_barras, ubicacion, estado, condicion, id_libro, eli
 
 ('BC-0051', 'Sala Existencialismo - Estante EX-1', 'disponible', 'bueno', 17, FALSE),
 ('BC-0052', 'Sala Existencialismo - Estante EX-1', 'disponible', 'bueno', 17, FALSE),
-('BC-0053', 'Sala Existencialismo - Estante EX-1', 'prestado',   'bueno', 17, FALSE),
+('BC-0053', 'Sala Existencialismo - Estante EX-1', 'disponible', 'bueno', 17, FALSE),
 
 ('BC-0054', 'Sala Existencialismo - Estante EX-1', 'disponible', 'bueno', 18, FALSE),
 ('BC-0055', 'Sala Existencialismo - Estante EX-1', 'disponible', 'danado', 18, FALSE),
@@ -223,7 +226,7 @@ INSERT INTO ejemplar (codigo_barras, ubicacion, estado, condicion, id_libro, eli
 ('BC-0059', 'Sala Novela Rusa y Clásicos - Estante R-1', 'disponible', 'bueno', 19, FALSE),
 
 ('BC-0060', 'Sala Novela Rusa y Clásicos - Estante R-1', 'disponible', 'bueno', 20, FALSE),
-('BC-0061', 'Sala Novela Rusa y Clásicos - Estante R-1', 'prestado',   'bueno', 20, FALSE),
+('BC-0061', 'Sala Novela Rusa y Clásicos - Estante R-1', 'disponible', 'bueno', 20, FALSE),
 ('BC-0062', 'Sala Novela Rusa y Clásicos - Estante R-1', 'disponible', 'bueno', 20, FALSE),
 
 ('BC-0063', 'Sala Literatura Universal - Pasillo B - Estante 4', 'disponible', 'bueno', 21, FALSE),
@@ -235,7 +238,7 @@ INSERT INTO ejemplar (codigo_barras, ubicacion, estado, condicion, id_libro, eli
 ('BC-0068', 'Sala Literatura Universal - Pasillo B - Estante 4', 'disponible', 'bueno', 22, FALSE),
 
 ('BC-0069', 'Sala Literatura Universal - Pasillo B - Estante 1', 'disponible', 'bueno', 23, FALSE),
-('BC-0070', 'Sala Literatura Universal - Pasillo B - Estante 1', 'prestado',   'bueno', 23, FALSE),
+('BC-0070', 'Sala Literatura Universal - Pasillo B - Estante 1', 'disponible', 'bueno', 23, FALSE),
 ('BC-0071', 'Sala Literatura Universal - Pasillo B - Estante 1', 'disponible', 'bueno', 23, FALSE),
 ('BC-0072', 'Sala Literatura Universal - Pasillo B - Estante 1', 'disponible', 'danado', 23, FALSE),
 
@@ -245,7 +248,7 @@ INSERT INTO ejemplar (codigo_barras, ubicacion, estado, condicion, id_libro, eli
 
 ('BC-0076', 'Sala Narrativa Contemporánea - Estante NC-1', 'disponible', 'bueno', 25, FALSE),
 ('BC-0077', 'Sala Narrativa Contemporánea - Estante NC-1', 'disponible', 'bueno', 25, FALSE),
-('BC-0078', 'Sala Narrativa Contemporánea - Estante NC-1', 'prestado',   'bueno', 25, FALSE),
+('BC-0078', 'Sala Narrativa Contemporánea - Estante NC-1', 'disponible', 'bueno', 25, FALSE),
 
 ('BC-0079', 'Sala Literatura Universal - Pasillo B - Estante 5', 'disponible', 'bueno', 26, FALSE),
 ('BC-0080', 'Sala Literatura Universal - Pasillo B - Estante 5', 'disponible', 'bueno', 26, FALSE),
@@ -260,7 +263,7 @@ INSERT INTO ejemplar (codigo_barras, ubicacion, estado, condicion, id_libro, eli
 ('BC-0087', 'Sala Ficción y Distopías - Estante D-2', 'disponible', 'bueno', 28, FALSE),
 
 ('BC-0088', 'Sala Ficción y Distopías - Estante D-2', 'disponible', 'bueno', 29, FALSE),
-('BC-0089', 'Sala Ficción y Distopías - Estante D-2', 'prestado',   'bueno', 29, FALSE),
+('BC-0089', 'Sala Ficción y Distopías - Estante D-2', 'disponible', 'bueno', 29, FALSE),
 ('BC-0090', 'Sala Ficción y Distopías - Estante D-2', 'disponible', 'bueno', 29, FALSE),
 
 ('BC-0091', 'Sala Caribe y Colombia - Pasillo A - Estante 1', 'disponible', 'bueno', 30, FALSE),

@@ -1,12 +1,16 @@
+import { lazy } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./components/Layout";
 import RutaProtegida from "./auth/RutaProtegida";
 import Login from "./pages/login/Login";
-import Catalogo from "./pages/catalogo/Catalogo";
-import Prestamos from "./pages/prestamos/Prestamos";
-import Dashboard from "./pages/dashboard/Dashboard";
-import Ejemplares from "./pages/ejemplares/Ejemplares";
-import Devoluciones from "./pages/devoluciones/Devoluciones";
+
+// Cada pantalla se descarga solo cuando se abre (code splitting): el login carga más rápido
+// y un estudiante nunca descarga las pantallas del personal.
+const Catalogo = lazy(() => import("./pages/catalogo/Catalogo"));
+const Prestamos = lazy(() => import("./pages/prestamos/Prestamos"));
+const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
+const Ejemplares = lazy(() => import("./pages/ejemplares/Ejemplares"));
+const Devoluciones = lazy(() => import("./pages/devoluciones/Devoluciones"));
 
 export default function App() {
   return (

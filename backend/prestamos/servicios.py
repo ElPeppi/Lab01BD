@@ -38,7 +38,16 @@ def _validar_cupo(usuario):
         )
 
 
-def _ejemplares_libres():
+def _validar_libro_no_repetido(usuario, libro_id):
+    # Una persona no puede acaparar varias copias del mismo libro
+    if Prestamo.objects.filter(
+        usuario=usuario, estado__in=Prestamo.ESTADOS_ABIERTOS, ejemplar__libro_id=libro_id
+    ).exists():
+        raise ReglaPrestamo("Ya hay una solicitud o un préstamo abierto de este libro para este usuario.")
+
+
+def ejemplares_libres():
+    """Ejemplares que se pueden prestar ya: disponibles, activos y sin préstamo abierto."""
     abierto = Prestamo.objects.filter(
         ejemplar=OuterRef("pk"), estado__in=Prestamo.ESTADOS_ABIERTOS
     )
@@ -56,17 +65,19 @@ def solicitar_prestamo(usuario, libro=None, ejemplar=None):
     _validar_usuario_activo(usuario)
     _validar_cupo(usuario)
 
+    _validar_libro_no_repetido(usuario, libro.pk if ejemplar is None else ejemplar.libro_id)
+
     if ejemplar is None:
         if libro.eliminado:
             raise ReglaPrestamo("El libro no está en el catálogo.")
         # "bueno" < "danado": se prefieren los ejemplares en buen estado
         ejemplar = (
-            _ejemplares_libres().filter(libro=libro)
+            ejemplares_libres().filter(libro=libro)
             .order_by("condicion", "id_ejemplar").first()
         )
         if ejemplar is None:
             raise ReglaPrestamo("No hay ejemplares disponibles de este libro.")
-    elif not _ejemplares_libres().filter(pk=ejemplar.pk).exists():
+    elif not ejemplares_libres().filter(pk=ejemplar.pk).exists():
         raise ReglaPrestamo("El ejemplar no está disponible.")
 
     try:

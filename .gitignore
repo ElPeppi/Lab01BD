@@ -3,3 +3,5 @@
 __pycache__/
 *.pyc
 db.sqlite3
+# Usuarios de MySQL con contraseñas reales (ver scripts/usuarios_bd.example.sql)
+scripts/usuarios_bd.sql
