@@ -1,0 +1,11 @@
+# Dependencias que se empaquetan en AWS Lambda (sin mysqlclient: ver config/__init__.py)
+apig-wsgi==2.20.0
+asgiref==3.12.1
+Django==6.1.2
+django-cors-headers==4.9.0
+djangorestframework==3.18.3
+PyJWT==2.14.0
+PyMySQL==1.2.3
+python-dotenv==1.2.4
+sqlparse==0.6.0
+tzdata==2026.5

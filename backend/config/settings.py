@@ -20,7 +20,8 @@ from dotenv import load_dotenv
 BASE_DIR = Path(__file__).resolve().parent.parent
 load_dotenv(BASE_DIR / ".env")
 load_dotenv()
-DEBUG = True
+# En local DEBUG queda activo; en AWS se define DEBUG=false (serverless.yml)
+DEBUG = os.getenv("DEBUG", "true").lower() == "true"
 
 
 def _env_obligatoria(nombre):
@@ -42,17 +43,17 @@ if not SECRET_KEY:
         raise ImproperlyConfigured("Falta SECRET_KEY en backend/.env.")
     SECRET_KEY = secrets.token_urlsafe(50)
     warnings.warn("SECRET_KEY no está en backend/.env: se usa una temporal (las sesiones se cierran al reiniciar).")
-ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
+# Dominios desde los que se acepta tráfico (en AWS: el de API Gateway). Separados por coma.
+ALLOWED_HOSTS = [h.strip() for h in os.getenv("ALLOWED_HOSTS", "localhost,127.0.0.1").split(",") if h.strip()]
 
 
 # Application definition
 
+# API JSON pura: sin admin, sesiones ni mensajes (nunca se usaron y en Lambda cada app
+# de más alarga el arranque en frío). auth y contenttypes se quedan porque DRF los usa.
 INSTALLED_APPS = [
-    'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
     'django.contrib.staticfiles',
     "rest_framework",
     "corsheaders",
@@ -62,11 +63,8 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     "corsheaders.middleware.CorsMiddleware",
     'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
@@ -81,7 +79,6 @@ TEMPLATES = [
             'context_processors': [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
             ],
         },
     },
@@ -166,5 +163,17 @@ TEST_RUNNER = "config.test_runner.RunnerConEsquemaReal"
 
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["usuarios.authentication.JWTAuthentication"],
+    # En producción solo JSON; en local también la vista navegable de DRF para probar a mano
+    "DEFAULT_RENDERER_CLASSES": ["rest_framework.renderers.JSONRenderer"]
+    + (["rest_framework.renderers.BrowsableAPIRenderer"] if DEBUG else []),
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
+}
+
+
+# Los errores se imprimen en la consola: en AWS Lambda eso termina en CloudWatch Logs
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {"consola": {"class": "logging.StreamHandler"}},
+    "root": {"handlers": ["consola"], "level": "WARNING"},
 }

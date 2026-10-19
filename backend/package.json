@@ -1,0 +1,14 @@
+{
+  "name": "bibliotecaun-backend-deploy",
+  "private": true,
+  "description": "Herramientas para desplegar el backend en AWS Lambda (ver DESPLIEGUE.md)",
+  "scripts": {
+    "deploy": "serverless deploy",
+    "info": "serverless info --verbose",
+    "logs": "serverless logs -f api --tail"
+  },
+  "devDependencies": {
+    "serverless": "^3.40.0",
+    "serverless-python-requirements": "^6.1.2"
+  }
+}

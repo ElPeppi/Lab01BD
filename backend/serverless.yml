@@ -1,0 +1,239 @@
+# =============================================================================
+# BibliotecaUN en AWS (Infraestructura como Código con Serverless Framework v3)
+#
+#   https://biblioteca.jan-productions.com
+#              │
+#          CloudFront ── /*      -> S3 privado (React compilado)
+#              └──────── /api/*  -> API Gateway HTTP API -> Lambda (Django)
+#                                                              │ dentro de la VPC
+#                                                              ▼
+#                                                        RDS MySQL (SSL)
+#
+# Un solo dominio para front y API: el navegador ve un único origen, así que no hay CORS.
+# Desplegar: `npx serverless deploy` desde backend/ (ver DESPLIEGUE.md).
+# =============================================================================
+service: bibliotecaun
+frameworkVersion: "3"
+
+custom:
+  dominio: biblioteca.jan-productions.com
+  # Red del RDS portafolio-db (salida de `aws rds describe-db-instances`).
+  # Son identificadores, no secretos. Se usan 3 subredes (3 zonas de disponibilidad):
+  # si una zona de AWS falla, la Lambda sigue corriendo en las otras.
+  red:
+    vpcId: vpc-01d9e58af61bbb1c7
+    subnetIds:
+      - subnet-0536eabd838b8bdb2
+      - subnet-067d4df7f83fba175
+      - subnet-027abcfd6b0239f16
+    rdsSecurityGroupId: sg-0706c4fb379e6c19b
+    dbHost: portafolio-db.cwb6o264cnfl.us-east-1.rds.amazonaws.com
+  hostedZoneId: Z03822205GB25RP0AKE2   # zona jan-productions.com en Route 53
+  pythonRequirements:
+    fileName: requirements-lambda.txt   # sin mysqlclient: se usa PyMySQL (Python puro, no requiere Docker)
+    slim: true
+
+provider:
+  name: aws
+  runtime: python3.13
+  region: us-east-1        # la misma del RDS; además CloudFront exige el certificado en us-east-1
+  stage: prod
+  memorySize: 1769         # en Lambda la CPU crece con la memoria: 1769 MB = 1 vCPU (el login usa PBKDF2)
+  timeout: 28              # máximo útil: API Gateway HTTP API corta a los 30 s
+  logRetentionInDays: 14
+  environment:
+    DJANGO_SETTINGS_MODULE: config.settings
+    DEBUG: "false"
+    # Host que llega a Django: el de API Gateway (CloudFront no reenvía el Host del visitante)
+    ALLOWED_HOSTS: .execute-api.us-east-1.amazonaws.com,${self:custom.dominio}
+    DB_NAME: biblioteca
+    DB_HOST: ${self:custom.red.dbHost}
+    # Secretos en SSM Parameter Store (SecureString): se leen al desplegar, nunca van al repo
+    DB_USER: ${ssm:/bibliotecaun/prod/db_user}
+    DB_PASSWORD: ${ssm:/bibliotecaun/prod/db_password}
+    SECRET_KEY: ${ssm:/bibliotecaun/prod/secret_key}
+
+functions:
+  api:
+    handler: lambda_handler.handler
+    description: Django REST API de BibliotecaUN
+    vpc:
+      securityGroupIds:
+        - Fn::GetAtt: [LambdaSecurityGroup, GroupId]
+      subnetIds: ${self:custom.red.subnetIds}
+    events:
+      - httpApi: "*"       # una sola Lambda atiende todas las rutas ("lambdalith"); Django enruta
+
+package:
+  patterns:
+    - "!**"
+    - lambda_handler.py
+    - config/**
+    - usuarios/**
+    - catalogo/**
+    - ejemplares/**
+    - prestamos/**
+    - devoluciones/**
+    - reportes/**
+    - certs/**             # CA de RDS para la conexión SSL
+    - "!**/__pycache__/**"
+    - "!**/tests.py"
+    - "!config/settings_local.py"
+    - "!config/settings_lambda_prueba.py"
+    - "!config/test_runner.py"
+
+plugins:
+  - serverless-python-requirements
+
+resources:
+  Resources:
+    # ---------- Red: la Lambda entra al RDS sin abrirlo a internet ----------
+    LambdaSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Lambda de BibliotecaUN (sale hacia RDS)
+        VpcId: ${self:custom.red.vpcId}
+
+    RdsDesdeLambda:
+      Type: AWS::EC2::SecurityGroupIngress
+      Properties:
+        Description: MySQL desde la Lambda de BibliotecaUN
+        GroupId: ${self:custom.red.rdsSecurityGroupId}
+        IpProtocol: tcp
+        FromPort: 3306
+        ToPort: 3306
+        SourceSecurityGroupId:
+          Fn::GetAtt: [LambdaSecurityGroup, GroupId]
+
+    # ---------- Frontend: S3 privado, solo CloudFront puede leerlo (OAC) ----------
+    FrontBucket:
+      Type: AWS::S3::Bucket
+      Properties:
+        PublicAccessBlockConfiguration:
+          BlockPublicAcls: true
+          BlockPublicPolicy: true
+          IgnorePublicAcls: true
+          RestrictPublicBuckets: true
+        OwnershipControls:
+          Rules:
+            - ObjectOwnership: BucketOwnerEnforced
+
+    FrontOAC:
+      Type: AWS::CloudFront::OriginAccessControl
+      Properties:
+        OriginAccessControlConfig:
+          Name: bibliotecaun-front-oac
+          OriginAccessControlOriginType: s3
+          SigningBehavior: always
+          SigningProtocol: sigv4
+
+    FrontBucketPolicy:
+      Type: AWS::S3::BucketPolicy
+      Properties:
+        Bucket: { Ref: FrontBucket }
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Sid: SoloCloudFront
+              Effect: Allow
+              Principal: { Service: cloudfront.amazonaws.com }
+              Action: s3:GetObject
+              Resource: { "Fn::Sub": "${FrontBucket.Arn}/*" }
+              Condition:
+                StringEquals:
+                  AWS:SourceArn: { "Fn::Sub": "arn:aws:cloudfront::${AWS::AccountId}:distribution/${Distribucion}" }
+
+    # ---------- HTTPS: certificado validado solo por DNS en Route 53 ----------
+    Certificado:
+      Type: AWS::CertificateManager::Certificate
+      Properties:
+        DomainName: ${self:custom.dominio}
+        ValidationMethod: DNS
+        DomainValidationOptions:
+          - DomainName: ${self:custom.dominio}
+            HostedZoneId: ${self:custom.hostedZoneId}
+
+    # Rutas de React (/catalogo, /prestamos...) no existen como archivos en S3: se sirven
+    # con index.html. Se hace con una función y NO con "páginas de error" de CloudFront,
+    # porque esas también reemplazarían los 403/404 reales de la API por HTML.
+    ReescrituraSpa:
+      Type: AWS::CloudFront::Function
+      Properties:
+        Name: bibliotecaun-spa
+        AutoPublish: true
+        FunctionConfig:
+          Comment: Rutas sin extension -> /index.html
+          Runtime: cloudfront-js-2.0
+        FunctionCode: |
+          function handler(event) {
+            var req = event.request;
+            if (req.uri.indexOf('.') === -1) { req.uri = '/index.html'; }
+            return req;
+          }
+
+    Distribucion:
+      Type: AWS::CloudFront::Distribution
+      Properties:
+        DistributionConfig:
+          Enabled: true
+          Comment: BibliotecaUN
+          Aliases: [ "${self:custom.dominio}" ]
+          HttpVersion: http2and3
+          PriceClass: PriceClass_All        # incluye el punto de presencia de Bogotá
+          DefaultRootObject: index.html
+          ViewerCertificate:
+            AcmCertificateArn: { Ref: Certificado }
+            SslSupportMethod: sni-only
+            MinimumProtocolVersion: TLSv1.2_2021
+          Origins:
+            - Id: front
+              DomainName: { "Fn::GetAtt": [FrontBucket, RegionalDomainName] }
+              OriginAccessControlId: { "Fn::GetAtt": [FrontOAC, Id] }
+              S3OriginConfig: { OriginAccessIdentity: "" }
+            - Id: api
+              # ApiEndpoint = https://xxxx.execute-api.us-east-1.amazonaws.com -> se queda el host
+              DomainName: { "Fn::Select": [2, { "Fn::Split": ["/", { "Fn::GetAtt": [HttpApi, ApiEndpoint] }] }] }
+              CustomOriginConfig:
+                OriginProtocolPolicy: https-only
+                OriginSSLProtocols: [TLSv1.2]
+          DefaultCacheBehavior:
+            TargetOriginId: front
+            ViewerProtocolPolicy: redirect-to-https
+            Compress: true
+            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6      # Managed-CachingOptimized
+            FunctionAssociations:
+              - EventType: viewer-request
+                FunctionARN: { "Fn::GetAtt": [ReescrituraSpa, FunctionARN] }
+          CacheBehaviors:
+            - PathPattern: /api/*
+              TargetOriginId: api
+              ViewerProtocolPolicy: https-only
+              AllowedMethods: [GET, HEAD, OPTIONS, PUT, PATCH, POST, DELETE]
+              CachedMethods: [GET, HEAD]
+              Compress: true
+              CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad          # Managed-CachingDisabled
+              OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac  # Managed-AllViewerExceptHostHeader (reenvía Authorization)
+
+    RegistroDns:
+      Type: AWS::Route53::RecordSetGroup
+      Properties:
+        HostedZoneId: ${self:custom.hostedZoneId}
+        RecordSets:
+          - Name: ${self:custom.dominio}
+            Type: A
+            AliasTarget:
+              DNSName: { "Fn::GetAtt": [Distribucion, DomainName] }
+              HostedZoneId: Z2FDTNDATAQYW2   # zona fija de todas las distribuciones de CloudFront
+          - Name: ${self:custom.dominio}
+            Type: AAAA
+            AliasTarget:
+              DNSName: { "Fn::GetAtt": [Distribucion, DomainName] }
+              HostedZoneId: Z2FDTNDATAQYW2
+
+  Outputs:
+    SitioUrl:
+      Value: https://${self:custom.dominio}
+    FrontBucketName:
+      Value: { Ref: FrontBucket }
+    DistributionId:
+      Value: { Ref: Distribucion }

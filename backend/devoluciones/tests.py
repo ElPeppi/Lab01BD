@@ -179,7 +179,7 @@ class PermisosTests(BaseTest):
         self.multa_ana = Multa.objects.get(devolucion__prestamo__usuario=self.usuario)
 
     def test_sin_sesion_todo_es_401(self):
-        self.client.force_authenticate(None)
+        self.client = APIClient()  # cliente nuevo, sin token
         self.assertEqual(self.client.get("/api/devoluciones/").status_code, 401)
         self.assertEqual(self.client.get("/api/multas/").status_code, 401)
         self.assertEqual(self.client.post(f"/api/multas/{self.multa_ana.pk}/pagar/").status_code, 401)

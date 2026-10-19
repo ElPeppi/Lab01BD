@@ -5,3 +5,7 @@ __pycache__/
 db.sqlite3
 # Usuarios de MySQL con contraseñas reales (ver scripts/usuarios_bd.example.sql)
 scripts/usuarios_bd.sql
+
+# Serverless Framework (artefactos de build y dependencias del despliegue)
+backend/node_modules/
+backend/.serverless/
