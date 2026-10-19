@@ -1,0 +1,105 @@
+.login {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  min-height: 100vh;
+}
+
+/* ---------- Columna izquierda: portada con la ficha de préstamo ---------- */
+.login-portada {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 2.5rem;
+  background: var(--tinta);
+  color: #e6ecef;
+  overflow: hidden;
+}
+
+.login-marca {
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #fff;
+}
+
+.login-lema {
+  max-width: 26ch;
+  margin: 0;
+  font-family: var(--fuente-titulo);
+  font-size: 1.25rem;
+  line-height: 1.45;
+  color: #c9d3da;
+}
+
+/* La ficha imita la tarjeta de fechas que se pega dentro de los libros */
+.ficha {
+  align-self: center;
+  width: min(22rem, 100%);
+  padding: 1.25rem 1.25rem 1.5rem;
+  background: #eadbb8;            /* papel manila */
+  color: #3b3324;
+  border-radius: 2px;
+  box-shadow: 0 18px 40px rgb(0 0 0 / 0.35);
+  transform: rotate(-3deg);
+}
+
+.ficha-cabecera {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 3px double #b5483b;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.ficha-sellos { margin: 0; padding: 0; list-style: none; }
+.ficha-sellos li {
+  display: flex;
+  align-items: center;
+  height: 2.5rem;
+  padding-left: var(--x, 0.5rem);
+  border-bottom: 1px solid #9fb4cc;
+}
+
+.sello {
+  display: inline-block;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  color: #4a3d8f;                 /* tinta de sello */
+  opacity: 0.85;
+  mix-blend-mode: multiply;
+  transform: rotate(var(--giro, 0deg));
+}
+
+/* Único momento animado: el sello más reciente "cae" sobre la ficha */
+.sello--nuevo { animation: sellar 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.25) 0.5s both; }
+
+@keyframes sellar {
+  from { opacity: 0; transform: scale(1.7) rotate(var(--giro, 0deg)); }
+  to   { opacity: 0.85; transform: scale(1) rotate(var(--giro, 0deg)); }
+}
+
+/* ---------- Columna derecha: formulario ---------- */
+.login-formulario {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+}
+
+.login-caja { width: 100%; max-width: 22rem; }
+.login-caja h1 { font-size: 2rem; }
+.login-intro { margin-bottom: 2rem; color: var(--texto-suave); }
+.login-caja .btn { margin-top: 0.5rem; }
+.login-ayuda { margin: 1.5rem 0 0; font-size: 0.9375rem; color: var(--texto-suave); }
+
+@media (max-width: 860px) {
+  .login { grid-template-columns: 1fr; grid-template-rows: auto 1fr; }
+  .login-portada { padding: 1.25rem 1.5rem; }
+  .ficha, .login-lema { display: none; }
+  .login-formulario { align-items: flex-start; padding-top: 2rem; }
+}

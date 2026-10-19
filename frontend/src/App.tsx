@@ -5,6 +5,8 @@ import Login from "./pages/login/Login";
 import Catalogo from "./pages/catalogo/Catalogo";
 import Prestamos from "./pages/prestamos/Prestamos";
 import Dashboard from "./pages/dashboard/Dashboard";
+import Ejemplares from "./pages/ejemplares/Ejemplares";
+import Devoluciones from "./pages/devoluciones/Devoluciones";
 
 export default function App() {
   return (
@@ -19,6 +21,8 @@ export default function App() {
             <Route path="/prestamos" element={<Prestamos />} />
             <Route element={<RutaProtegida tipos={["empleado"]} />}>
               <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/ejemplares" element={<Ejemplares />} />
+              <Route path="/devoluciones" element={<Devoluciones />} />
             </Route>
           </Route>
         </Route>

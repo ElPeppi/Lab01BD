@@ -1,0 +1,201 @@
+/* =====================================================================
+   BibliotecaUN · Design system mínimo
+   Tokens (variables) + estilos base + componentes reutilizables.
+   Todas las pantallas deben usar estas clases en vez de estilos sueltos.
+   ===================================================================== */
+
+:root {
+  /* Color */
+  --tinta: #1d2b3a;          /* texto principal y barra lateral */
+  --tinta-suave: #2a3b4e;
+  --texto: #1d2b3a;
+  --texto-suave: #556270;
+  --fondo: #f3f5f4;
+  --superficie: #ffffff;
+  --superficie-alt: #f8faf9;
+  --borde: #d3dad7;
+  --borde-suave: #e6ebe9;
+
+  --primario: #2e6b50;       /* verde biblioteca: acciones */
+  --primario-hover: #255a43;
+  --primario-claro: #e3efe8;
+  --aviso: #9a5b00;          /* vencido */
+  --aviso-claro: #fbefd9;
+  --error: #b3261e;          /* solo errores y acciones destructivas */
+  --error-claro: #fbe4e2;
+  --info: #2f5d8a;
+  --info-claro: #e2ecf6;
+  --foco: #2f6fb0;
+
+  /* Tipografía */
+  --fuente-titulo: "Literata Variable", "Literata", Georgia, "Times New Roman", serif;
+  --fuente-texto: "Source Sans 3", "Segoe UI", system-ui, sans-serif;
+
+  /* Forma */
+  --radio: 6px;
+  --radio-sm: 4px;
+}
+
+/* ---------- Base ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fondo);
+  color: var(--texto);
+  font-family: var(--fuente-texto);
+  font-size: 1rem;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  margin: 0 0 0.5em;
+  font-family: var(--fuente-titulo);
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+h1 { font-size: 1.75rem; }
+h2 { font-size: 1.375rem; }
+h3 { font-size: 1.125rem; }
+
+p { margin: 0 0 1em; }
+a { color: var(--primario); }
+button, input, select, textarea { font: inherit; color: inherit; }
+
+:focus-visible {
+  outline: 3px solid var(--foco);
+  outline-offset: 2px;
+}
+
+/* ---------- Encabezado de página ---------- */
+/* <header class="encabezado"><div><h1>..</h1><p>..</p></div><button class="btn">..</button></header> */
+.encabezado {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+.encabezado h1 { margin: 0; }
+.encabezado p { margin: 0.25rem 0 0; color: var(--texto-suave); }
+
+/* ---------- Botones ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 2.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid transparent;
+  border-radius: var(--radio);
+  background: var(--primario);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background-color 0.15s;
+}
+.btn:hover { background: var(--primario-hover); }
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+.btn--secundario { background: var(--superficie); color: var(--texto); border-color: var(--borde); }
+.btn--secundario:hover { background: var(--superficie-alt); }
+.btn--peligro { background: var(--error); }
+.btn--peligro:hover { background: #951f18; }
+.btn--bloque { width: 100%; }
+
+/* ---------- Formularios ---------- */
+/* <div class="campo"><label for="x">..</label><input id="x"/><small>ayuda</small></div> */
+.campo { display: flex; flex-direction: column; gap: 0.375rem; margin-bottom: 1rem; }
+.campo label { font-weight: 600; font-size: 0.9375rem; }
+.campo input,
+.campo select,
+.campo textarea {
+  min-height: 2.75rem;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  background: var(--superficie);
+}
+.campo input:focus,
+.campo select:focus,
+.campo textarea:focus { border-color: var(--primario); }
+.campo small { color: var(--texto-suave); font-size: 0.875rem; }
+
+/* ---------- Alertas ---------- */
+.alerta {
+  margin-bottom: 1rem;
+  padding: 0.75rem 1rem;
+  border-left: 4px solid;
+  border-radius: var(--radio-sm);
+}
+.alerta--error { background: var(--error-claro); border-color: var(--error); color: #7a1a14; }
+.alerta--exito { background: var(--primario-claro); border-color: var(--primario); color: #1d4a36; }
+.alerta--aviso { background: var(--aviso-claro); border-color: var(--aviso); color: #6e4100; }
+
+/* ---------- Panel ---------- */
+.panel {
+  padding: 1.25rem;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+
+/* ---------- Tablas ---------- */
+/* <div class="tabla-contenedor"><table class="tabla">..</table></div> */
+.tabla-contenedor {
+  overflow-x: auto;
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+}
+.tabla { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+.tabla th {
+  padding: 0.75rem 1rem;
+  background: var(--superficie-alt);
+  border-bottom: 1px solid var(--borde);
+  color: var(--texto-suave);
+  font-weight: 600;
+  text-align: left;
+  white-space: nowrap;
+}
+.tabla td { padding: 0.75rem 1rem; border-bottom: 1px solid var(--borde-suave); vertical-align: middle; }
+.tabla tbody tr:last-child td { border-bottom: 0; }
+.tabla tbody tr:hover { background: var(--superficie-alt); }
+.tabla .num { text-align: right; font-variant-numeric: tabular-nums; }
+
+/* En pantallas pequeñas la tabla hace scroll horizontal en vez de apretar el texto */
+@media (max-width: 800px) {
+  .tabla th, .tabla td { padding: 0.625rem 0.75rem; white-space: nowrap; }
+}
+
+/* ---------- Estados (ejemplares, préstamos, usuarios) ---------- */
+/* <span class="estado estado--vencido">Vencido</span> */
+.estado {
+  display: inline-block;
+  padding: 0.125rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.estado--disponible, .estado--aprobado, .estado--devuelto { background: var(--primario-claro); color: #1d4a36; }
+.estado--prestado, .estado--solicitado { background: var(--info-claro); color: #1f4466; }
+.estado--vencido { background: var(--aviso-claro); color: #6e4100; }
+.estado--perdido, .estado--rechazado, .estado--bloqueado { background: var(--error-claro); color: #7a1a14; }
+.estado--danado { background: var(--borde-suave); color: var(--texto-suave); }
+
+/* ---------- Estado vacío ---------- */
+.vacio { padding: 3rem 1rem; text-align: center; color: var(--texto-suave); }
+.vacio h2 { color: var(--texto); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
