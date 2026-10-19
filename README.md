@@ -42,8 +42,7 @@ biblioteca de la universidad.
 
 ### 1. Crear la base de datos
 
-Ejecuta los cuatro scripts **en este orden**, en MySQL Workbench (abrir el archivo y ejecutarlo
-completo con el rayo ⚡) o desde la terminal:
+Ejecuta los cuatro scripts **en este orden**, en MySQL Workbench o desde la terminal:
 
 ```bash
 mysql -u root -p < scripts/Inicializacion.sql
@@ -204,5 +203,4 @@ backend/          API REST en Django, una app por módulo:
   devoluciones/     devoluciones y multas
   reportes/         reportes y exportación a CSV
 frontend/         Interfaz web en React
-DESPLIEGUE.md     Cómo está publicada en AWS (opcional; no hace falta para correrla en local)
 ```
