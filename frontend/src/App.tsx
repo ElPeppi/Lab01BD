@@ -11,6 +11,7 @@ const Prestamos = lazy(() => import("./pages/prestamos/Prestamos"));
 const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const Ejemplares = lazy(() => import("./pages/ejemplares/Ejemplares"));
 const Devoluciones = lazy(() => import("./pages/devoluciones/Devoluciones"));
+const Multas = lazy(() => import("./pages/multas/Multas"));
 
 export default function App() {
   return (
@@ -23,6 +24,7 @@ export default function App() {
           <Route element={<Layout />}>
             <Route path="/catalogo" element={<Catalogo />} />
             <Route path="/prestamos" element={<Prestamos />} />
+            <Route path="/multas" element={<Multas />} />
             <Route element={<RutaProtegida tipos={["empleado"]} />}>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/ejemplares" element={<Ejemplares />} />

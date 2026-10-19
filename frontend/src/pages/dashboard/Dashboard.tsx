@@ -1,22 +1,26 @@
 import { Link } from "react-router-dom";
+import { multasApi } from "../../api/devoluciones";
 import { ejemplaresApi } from "../../api/ejemplares";
 import { prestamosApi } from "../../api/prestamos";
 import { useAuth } from "../../auth/AuthContext";
 import { ErrorCarga } from "../../components/Estados";
 import { EstadoPrestamo } from "../../components/EtiquetaEstado";
 import { useConsulta } from "../../hooks/useConsulta";
-import { formatearFecha } from "../../utils/formato";
+import { formatearFecha, formatearPesos } from "../../utils/formato";
 
 const solicitudes = () => prestamosApi.listar({ estado: "solicitado" });
 const activos = () => prestamosApi.listar({ activos: true });
+const multasPendientes = () => multasApi.listar({ pagada: false });
 
 /** Inicio del personal: lo que requiere atención hoy. */
 export default function Dashboard() {
   const { perfil } = useAuth();
-  // Las tres consultas salen en paralelo
+  // Las cuatro consultas salen en paralelo
   const pendientes = useConsulta(solicitudes);
   const prestados = useConsulta(activos);
   const inventario = useConsulta(ejemplaresApi.resumenInventario);
+  const multas = useConsulta(multasPendientes);
+  const porCobrar = multas.datos?.reduce((t, m) => t + Number(m.monto), 0);
 
   const vencidos = (prestados.datos ?? [])
     .filter((p) => p.vencido)
@@ -33,7 +37,7 @@ export default function Dashboard() {
         </div>
       </header>
 
-      {[pendientes.error, prestados.error, inventario.error].filter(Boolean).slice(0, 1).map((e) => (
+      {[pendientes.error, prestados.error, inventario.error, multas.error].filter(Boolean).slice(0, 1).map((e) => (
         <ErrorCarga
           key="err"
           mensaje={e as string}
@@ -41,6 +45,7 @@ export default function Dashboard() {
             pendientes.recargar();
             prestados.recargar();
             inventario.recargar();
+            multas.recargar();
           }}
         />
       ))}
@@ -54,6 +59,13 @@ export default function Dashboard() {
           <dd>
             {cifra(inventario.datos?.disponibles)}
             {inventario.datos && <span className="cifra-total"> de {inventario.datos.total}</span>}
+          </dd>
+        </div>
+        <div className="cifra">
+          <dt>Multas por cobrar</dt>
+          <dd>
+            {porCobrar === undefined ? "…" : formatearPesos(porCobrar)}
+            {multas.datos && multas.datos.length > 0 && <span className="cifra-total"> en {multas.datos.length}</span>}
           </dd>
         </div>
       </dl>

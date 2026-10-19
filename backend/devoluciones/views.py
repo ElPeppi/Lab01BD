@@ -1,10 +1,11 @@
-from django.shortcuts import render
-
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from prestamos.models import Devolucion, Multa
+from usuarios.models import Empleado
+from usuarios.permissions import EsEmpleado
 
 from . import servicios
 from .serializers import DevolucionEntradaSerializer, DevolucionSerializer, MultaSerializer
@@ -13,8 +14,14 @@ from .serializers import DevolucionEntradaSerializer, DevolucionSerializer, Mult
 
 class DevolucionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                         viewsets.GenericViewSet):
-   
+    """
+    Devoluciones. Registrar: solo personal (el empleado sale del token).
+    Consultar: cualquier sesión; un usuario solo ve las suyas.
+    """
     serializer_class = DevolucionSerializer
+
+    def get_permissions(self):
+        return [EsEmpleado()] if self.action == "create" else [IsAuthenticated()]
 
     def get_queryset(self):
         qs = (
@@ -22,6 +29,8 @@ class DevolucionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
             .select_related("prestamo__usuario", "prestamo__ejemplar__libro", "empleado", "multa")
             .order_by("-fecha_devolucion")
         )
+        if self.request.user.tipo == "usuario":
+            qs = qs.filter(prestamo__usuario_id=self.request.user.id)
         p = self.request.query_params
         if p.get("usuario", "").isdigit():
             qs = qs.filter(prestamo__usuario_id=p["usuario"])
@@ -36,15 +45,22 @@ class DevolucionViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
     def create(self, request, *args, **kwargs):
         entrada = DevolucionEntradaSerializer(data=request.data)
         entrada.is_valid(raise_exception=True)
-        devolucion = servicios.registrar_devolucion(**entrada.validated_data)
+        empleado = Empleado.objects.get(pk=request.user.id)
+        devolucion = servicios.registrar_devolucion(empleado=empleado, **entrada.validated_data)
         devolucion = self.get_queryset().get(pk=devolucion.pk)  # recarga con sus relaciones
         return Response(DevolucionSerializer(devolucion).data, status=status.HTTP_201_CREATED)
 
 
 class MultaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
                    viewsets.GenericViewSet):
-    """Las multas solo se consultan y se pagan: las crea la devolución."""
+    """
+    Las multas solo se consultan y se pagan: las crea la devolución.
+    Pagar: solo personal. Consultar: cualquier sesión; un usuario solo ve las suyas.
+    """
     serializer_class = MultaSerializer
+
+    def get_permissions(self):
+        return [EsEmpleado()] if self.action == "pagar" else [IsAuthenticated()]
 
     def get_queryset(self):
         qs = (
@@ -52,6 +68,8 @@ class MultaViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
             .select_related("devolucion__prestamo__usuario")
             .order_by("-id_multa")
         )
+        if self.request.user.tipo == "usuario":
+            qs = qs.filter(devolucion__prestamo__usuario_id=self.request.user.id)
         p = self.request.query_params
         if p.get("pagada") == "true":
             qs = qs.filter(pagada=True)

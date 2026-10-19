@@ -2,15 +2,13 @@ from rest_framework import serializers
 
 from ejemplares.models import Ejemplar
 from prestamos.models import Devolucion, Multa, Prestamo
-from usuarios.models import Empleado
 
 from .servicios import dias_de_retraso
 
 
 class DevolucionEntradaSerializer(serializers.Serializer):
-    """Lo que manda el frontend para registrar una devolución."""
+    """Lo que manda el frontend para registrar una devolución (el empleado sale del token)."""
     prestamo = serializers.PrimaryKeyRelatedField(queryset=Prestamo.objects.all())
-    empleado = serializers.PrimaryKeyRelatedField(queryset=Empleado.objects.all())
     observaciones = serializers.CharField(max_length=500, required=False, allow_blank=True)
     # en qué estado vuelve el ejemplar
     condicion = serializers.ChoiceField(

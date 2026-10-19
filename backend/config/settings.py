@@ -161,6 +161,9 @@ MAILERS = {
 
 CORS_ALLOWED_ORIGINS = ["http://localhost:5173", "http://localhost:3000"]
 
+# manage.py test crea la BD de pruebas con el DDL real (ver config/test_runner.py)
+TEST_RUNNER = "config.test_runner.RunnerConEsquemaReal"
+
 REST_FRAMEWORK = {
     "DEFAULT_AUTHENTICATION_CLASSES": ["usuarios.authentication.JWTAuthentication"],
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],

@@ -4,7 +4,7 @@ Usa DRF para compartir con el resto del backend la autenticación JWT, los permi
 y el formato de errores ({"detail": ...} o {"campo": ["..."]}).
 Solo el personal de la biblioteca puede usarla.
 """
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.decorators import api_view, permission_classes
@@ -15,7 +15,23 @@ from usuarios.permissions import EsEmpleado
 
 from .forms import EjemplarForm
 from .models import Ejemplar
-from .views import _calcular_resumen_estados
+
+
+def _calcular_resumen_estados(queryset):
+    """Calcula totales y porcentajes desglosados por estado y condición."""
+    agregados = queryset.aggregate(
+        total=Count("id_ejemplar"),
+        disponibles=Count("id_ejemplar", filter=Q(estado=Ejemplar.ESTADO_DISPONIBLE, eliminado=False)),
+        prestados=Count("id_ejemplar", filter=Q(estado=Ejemplar.ESTADO_PRESTADO, eliminado=False)),
+        perdidos=Count("id_ejemplar", filter=Q(estado=Ejemplar.ESTADO_PERDIDO, eliminado=False)),
+        buenos=Count("id_ejemplar", filter=Q(condicion=Ejemplar.CONDICION_BUENO, eliminado=False)),
+        danados=Count("id_ejemplar", filter=Q(condicion=Ejemplar.CONDICION_DANADO, eliminado=False)),
+    )
+    total = agregados["total"] or 0
+    agregados["pct_disponibles"] = round((agregados["disponibles"] / total) * 100, 1) if total else 0.0
+    agregados["pct_prestados"] = round((agregados["prestados"] / total) * 100, 1) if total else 0.0
+    agregados["pct_perdidos"] = round((agregados["perdidos"] / total) * 100, 1) if total else 0.0
+    return agregados
 
 
 def _serializar(ej):

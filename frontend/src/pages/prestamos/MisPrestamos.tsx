@@ -1,17 +1,22 @@
 import { useCallback } from "react";
 import { Link } from "react-router-dom";
+import { multasApi } from "../../api/devoluciones";
 import { prestamosApi } from "../../api/prestamos";
 import { useAuth } from "../../auth/AuthContext";
 import { Cargando, ErrorCarga, Vacio } from "../../components/Estados";
 import { EstadoPrestamo } from "../../components/EtiquetaEstado";
 import { useConsulta } from "../../hooks/useConsulta";
-import { formatearFecha } from "../../utils/formato";
+import { formatearFecha, formatearPesos } from "../../utils/formato";
+
+const misMultasPendientes = () => multasApi.listar({ pagada: false });
 
 /** Vista del estudiante o docente: solo sus préstamos. */
 export default function MisPrestamos() {
   const { perfil } = useAuth();
   const consulta = useCallback(() => prestamosApi.listar({ usuario: perfil?.id }), [perfil?.id]);
   const prestamos = useConsulta(consulta);
+  const multas = useConsulta(misMultasPendientes);
+  const debe = (multas.datos ?? []).reduce((t, m) => t + Number(m.monto), 0);
 
   const abiertos = prestamos.datos?.filter((p) => p.estado === "solicitado" || p.estado === "aprobado").length ?? 0;
   const vencidos = prestamos.datos?.filter((p) => p.vencido) ?? [];
@@ -35,6 +40,13 @@ export default function MisPrestamos() {
           {vencidos.length === 1
             ? `"${vencidos[0].libro_titulo}" está vencido. Devuélvelo pronto: la multa aumenta cada día.`
             : `Tienes ${vencidos.length} libros vencidos. Devuélvelos pronto: la multa aumenta cada día.`}
+        </div>
+      )}
+
+      {debe > 0 && (
+        <div className="alerta alerta--aviso alerta--accion" role="status">
+          <span>Tienes multas pendientes por {formatearPesos(debe)}. Págalas en el mostrador de la biblioteca.</span>
+          <Link className="btn btn--secundario btn--pequeno" to="/multas">Ver multas</Link>
         </div>
       )}
 

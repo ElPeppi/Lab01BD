@@ -92,3 +92,32 @@ export type Prestamo = {
   vencido: boolean;
   dias_retraso: number;
 };
+
+// GET /api/devoluciones/
+export type Devolucion = {
+  id_devolucion: number;
+  prestamo: number;
+  usuario: number;
+  usuario_nombres: string;
+  ejemplar: number;
+  libro_titulo: string;
+  empleado: number;
+  empleado_nombres: string;
+  fecha_vencimiento: string;  // YYYY-MM-DD
+  fecha_devolucion: string;   // datetime ISO
+  dias_retraso: number;
+  observaciones: string | null;
+  multa: { id_multa: number; monto: string; pagada: boolean } | null;
+};
+
+// GET /api/multas/
+export type Multa = {
+  id_multa: number;
+  devolucion: number;
+  prestamo: number;
+  usuario: number;
+  usuario_nombres: string;
+  monto: string; // decimal como texto, p. ej. "4000.00"
+  pagada: boolean;
+  fecha_pago: string | null;
+};

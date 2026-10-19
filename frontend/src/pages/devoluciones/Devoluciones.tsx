@@ -1,8 +1,8 @@
 import { useCallback, useMemo, useState, type FormEvent } from "react";
 import { devolucionesApi } from "../../api/devoluciones";
-import { esNoEncontrado, mensajeError } from "../../api/errores";
+import { mensajeError } from "../../api/errores";
 import { prestamosApi } from "../../api/prestamos";
-import type { Prestamo } from "../../api/tipos";
+import type { CondicionEjemplar, Prestamo } from "../../api/tipos";
 import { useAuth } from "../../auth/AuthContext";
 import Aviso, { type AvisoDatos } from "../../components/Aviso";
 import Dialogo from "../../components/Dialogo";
@@ -10,7 +10,7 @@ import { Cargando, ErrorCarga, Vacio } from "../../components/Estados";
 import { EstadoPrestamo } from "../../components/EtiquetaEstado";
 import { useConsulta } from "../../hooks/useConsulta";
 import { useDebounce } from "../../hooks/useDebounce";
-import { formatearFecha, plural } from "../../utils/formato";
+import { formatearFecha, formatearPesos, plural } from "../../utils/formato";
 
 const activos = () => prestamosApi.listar({ activos: true });
 
@@ -36,11 +36,13 @@ export default function Devoluciones() {
   const [aviso, setAviso] = useState<AvisoDatos | null>(null);
   const [devolviendo, setDevolviendo] = useState<Prestamo | null>(null);
   const [observaciones, setObservaciones] = useState("");
+  const [condicion, setCondicion] = useState<CondicionEjemplar>("bueno");
   const [error, setError] = useState("");
   const [enviando, setEnviando] = useState(false);
 
   const abrir = useCallback((p: Prestamo) => {
     setObservaciones("");
+    setCondicion("bueno");
     setError("");
     setDevolviendo(p);
   }, []);
@@ -51,17 +53,15 @@ export default function Devoluciones() {
     setEnviando(true);
     setError("");
     try {
-      const r = await devolucionesApi.registrar(devolviendo.id_prestamo, observaciones.trim());
-      const multa = r.multa ? ` Se generó una multa de $${Number(r.multa.monto).toLocaleString("es-CO")}.` : "";
+      const r = await devolucionesApi.registrar(devolviendo.id_prestamo, observaciones.trim(), condicion);
+      const multa = r.multa
+        ? ` Se generó una multa de ${formatearPesos(r.multa.monto)} por ${plural(r.dias_retraso, "día")} de retraso.`
+        : " Llegó a tiempo: no hay multa.";
       setAviso({ tipo: "exito", texto: `Devolución registrada: ${devolviendo.ejemplar_codigo} vuelve a estar disponible.${multa}` });
       setDevolviendo(null);
       prestamos.recargar();
     } catch (err) {
-      setError(
-        esNoEncontrado(err)
-          ? "El registro de devoluciones todavía no está disponible en el servidor."
-          : mensajeError(err),
-      );
+      setError(mensajeError(err));
     } finally {
       setEnviando(false);
     }
@@ -148,6 +148,13 @@ export default function Devoluciones() {
                 Se devuelve con {plural(devolviendo.dias_retraso, "día")} de retraso: se generará una multa.
               </p>
             )}
+            <div className="campo">
+              <label htmlFor="condicion">¿En qué condición vuelve?</label>
+              <select id="condicion" value={condicion} onChange={(e) => setCondicion(e.target.value as CondicionEjemplar)}>
+                <option value="bueno">Bueno</option>
+                <option value="danado">Dañado</option>
+              </select>
+            </div>
             <div className="campo">
               <label htmlFor="observaciones">Observaciones (opcional)</label>
               <textarea id="observaciones" rows={3} maxLength={500} value={observaciones} onChange={(e) => setObservaciones(e.target.value)} placeholder="Ej. Llegó con la portada doblada" />

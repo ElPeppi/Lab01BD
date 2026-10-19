@@ -16,17 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import include, path
-from ejemplares import views as ejemplares_views
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/catalogo/', include('catalogo.urls')),
     path('api/prestamos/', include('prestamos.urls')),
     path('api/ejemplares/', include('ejemplares.api_urls')),
-    path('api/', include('devoluciones.urls')),
-    path('ejemplares/', include('ejemplares.urls', namespace='ejemplares')),
-    path('reportes/inventario/', ejemplares_views.reporte_inventario,
-         name='reporte_inventario_global'),
+    path('api/', include('devoluciones.urls')),  # /api/devoluciones/ y /api/multas/
     path('api/auth/', include('usuarios.urls')),
 ]
 

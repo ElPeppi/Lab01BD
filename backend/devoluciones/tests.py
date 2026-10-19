@@ -8,6 +8,7 @@ from rest_framework.test import APIClient
 from catalogo.models import Categoria, Editorial, Libro
 from ejemplares.models import Ejemplar
 from prestamos.models import Configuracion, Devolucion, Multa, Prestamo
+from usuarios.authentication import UsuarioToken
 from usuarios.models import Empleado, PoliticaPrestamo, Usuario
 
 
@@ -26,8 +27,17 @@ class BaseTest(TestCase):
         categoria = Categoria.objects.create(nombre="Cat")
         self.libro = Libro.objects.create(
             isbn="111", titulo="Don Quijote", anio=1605, editorial=editorial, categoria=categoria)
+        # Las peticiones salen como el empleado (equivale a mandar su JWT)
+        self.como_empleado()
 
-    def prestamo_aprobado(self, dias_vencido=0, codigo="E1"):
+    def como_empleado(self):
+        self.client.force_authenticate(UsuarioToken("empleado", self.empleado.pk, "bibliotecario", "Beto"))
+
+    def como_usuario(self, usuario=None):
+        u = usuario or self.usuario
+        self.client.force_authenticate(UsuarioToken("usuario", u.pk, "estudiante", u.nombres))
+
+    def prestamo_aprobado(self, dias_vencido=0, codigo="E1", usuario=None):
         """Un préstamo aprobado que vence dentro de 3 días (o venció hace dias_vencido)."""
         ejemplar = Ejemplar.objects.create(
             codigo_barras=codigo, ubicacion="A1", libro=self.libro,
@@ -35,12 +45,12 @@ class BaseTest(TestCase):
         hoy = timezone.localdate()
         vence = hoy - timedelta(days=dias_vencido) if dias_vencido else hoy + timedelta(days=3)
         return Prestamo.objects.create(
-            usuario=self.usuario, ejemplar=ejemplar, empleado=self.empleado,
+            usuario=usuario or self.usuario, ejemplar=ejemplar, empleado=self.empleado,
             estado=Prestamo.APROBADO, fecha_aprobacion=timezone.now(),
             fecha_prestamo=vence - timedelta(days=7), fecha_vencimiento=vence)
 
     def devolver(self, prestamo, **extra):
-        cuerpo = {"prestamo": prestamo.pk, "empleado": self.empleado.pk, **extra}
+        cuerpo = {"prestamo": prestamo.pk, **extra}
         return self.client.post("/api/devoluciones/", cuerpo, format="json")
 
 
@@ -88,14 +98,21 @@ class DevolucionTests(BaseTest):
 
     def test_prestamo_no_aprobado_se_rechaza(self):
         prestamo = self.prestamo_aprobado()
-        Prestamo.objects.filter(pk=prestamo.pk).update(estado=Prestamo.SOLICITADO)
+        # una solicitud no tiene empleado ni fecha de aprobación (lo exige ck_prestamo_coherencia)
+        Prestamo.objects.filter(pk=prestamo.pk).update(
+            estado=Prestamo.SOLICITADO, empleado=None, fecha_aprobacion=None)
         self.assertEqual(self.devolver(prestamo).status_code, 409)
         self.assertEqual(Devolucion.objects.count(), 0)
 
-    def test_empleado_inexistente_es_400(self):
+    def test_empleado_sale_del_token_y_no_del_cuerpo(self):
         prestamo = self.prestamo_aprobado()
         r = self.client.post(
             "/api/devoluciones/", {"prestamo": prestamo.pk, "empleado": 999}, format="json")
+        self.assertEqual(r.status_code, 201)
+        self.assertEqual(r.data["empleado"], self.empleado.pk)
+
+    def test_prestamo_inexistente_es_400(self):
+        r = self.client.post("/api/devoluciones/", {"prestamo": 999}, format="json")
         self.assertEqual(r.status_code, 400)
 
     def test_condicion_invalida_es_400(self):
@@ -146,3 +163,42 @@ class MultaTests(BaseTest):
     def test_multas_no_se_crean_ni_borran_por_la_api(self):
         self.assertEqual(self.client.post("/api/multas/", {"monto": 1}).status_code, 405)
         self.assertEqual(self.client.delete(f"/api/multas/{self.multa.pk}/").status_code, 405)
+
+
+class PermisosTests(BaseTest):
+    """Quién puede registrar devoluciones y cobrar multas, y quién ve qué."""
+
+    def setUp(self):
+        super().setUp()
+        self.devolver(self.prestamo_aprobado(dias_vencido=2))  # Ana: 1 devolución con multa
+        otro = Usuario.objects.create(
+            codigo="U2", identificacion="2", nombres="Carlos", correo="carlos@x.co",
+            clave_hash="x", rol=self.usuario.rol)
+        self.otro = otro
+        self.devolver(self.prestamo_aprobado(dias_vencido=1, codigo="E2", usuario=otro))
+        self.multa_ana = Multa.objects.get(devolucion__prestamo__usuario=self.usuario)
+
+    def test_sin_sesion_todo_es_401(self):
+        self.client.force_authenticate(None)
+        self.assertEqual(self.client.get("/api/devoluciones/").status_code, 401)
+        self.assertEqual(self.client.get("/api/multas/").status_code, 401)
+        self.assertEqual(self.client.post(f"/api/multas/{self.multa_ana.pk}/pagar/").status_code, 401)
+
+    def test_usuario_no_registra_devoluciones_ni_paga_multas(self):
+        self.como_usuario()
+        r = self.client.post("/api/devoluciones/", {"prestamo": self.prestamo_aprobado(codigo="E3").pk}, format="json")
+        self.assertEqual(r.status_code, 403)
+        self.assertEqual(self.client.post(f"/api/multas/{self.multa_ana.pk}/pagar/").status_code, 403)
+
+    def test_usuario_solo_ve_lo_suyo(self):
+        self.como_usuario()
+        devoluciones = self.client.get("/api/devoluciones/").data
+        multas = self.client.get(f"/api/multas/?usuario={self.otro.pk}").data  # intenta ver las de otro
+        self.assertEqual([d["usuario"] for d in devoluciones], [self.usuario.pk])
+        self.assertEqual(multas, [])
+        self.assertEqual(len(self.client.get("/api/multas/").data), 1)
+
+    def test_personal_ve_todo(self):
+        self.assertEqual(len(self.client.get("/api/devoluciones/").data), 2)
+        self.assertEqual(len(self.client.get("/api/multas/").data), 2)
+

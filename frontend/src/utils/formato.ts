@@ -14,6 +14,14 @@ export function formatearFecha(valor: string | null | undefined): string {
   return Number.isNaN(fecha.getTime()) ? "—" : fechaCorta.format(fecha).replace(".", "");
 }
 
+const pesos = new Intl.NumberFormat("es-CO", { style: "currency", currency: "COP", maximumFractionDigits: 0 });
+
+/** "4000.00" -> "$ 4.000" */
+export function formatearPesos(valor: string | number): string {
+  const n = Number(valor);
+  return Number.isFinite(n) ? pesos.format(n) : "—";
+}
+
 export function plural(n: number, singular: string, pluralTexto = `${singular}s`) {
   return `${n} ${n === 1 ? singular : pluralTexto}`;
 }
@@ -29,4 +37,6 @@ export const NOMBRE_ESTADO: Record<string, string> = {
   vencido: "Vencido",
   bueno: "Bueno",
   danado: "Dañado",
+  pagada: "Pagada",
+  pendiente: "Pendiente",
 };

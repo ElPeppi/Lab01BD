@@ -29,11 +29,7 @@ class EjemplarModelAndUrlsTests(SimpleTestCase):
         with self.assertRaises(ValidationError):
             ej.clean()
 
-    def test_urls_ejemplares_e_inventario_resuelven(self):
-        self.assertEqual(reverse("ejemplares:lista"), "/ejemplares/")
-        self.assertEqual(reverse("ejemplares:crear"), "/ejemplares/nuevo/")
-        self.assertEqual(reverse("ejemplares:detalle", args=[1]), "/ejemplares/1/")
-        self.assertEqual(reverse("ejemplares:editar", args=[1]), "/ejemplares/1/editar/")
-        self.assertEqual(reverse("ejemplares:dar_baja", args=[1]), "/ejemplares/1/baja/")
-        self.assertEqual(reverse("ejemplares:reporte_inventario"), "/ejemplares/inventario/")
-        self.assertEqual(reverse("reporte_inventario_global"), "/reportes/inventario/")
+    def test_urls_api_resuelven(self):
+        self.assertEqual(reverse("api_ejemplares"), "/api/ejemplares/")
+        self.assertEqual(reverse("api_ejemplar", args=[1]), "/api/ejemplares/1/")
+        self.assertEqual(reverse("api_inventario"), "/api/ejemplares/inventario/")

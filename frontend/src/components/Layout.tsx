@@ -14,11 +14,13 @@ const MENU_EMPLEADO: ItemMenu[] = [
   { to: "/ejemplares", texto: "Ejemplares" },
   { to: "/prestamos", texto: "Préstamos" },
   { to: "/devoluciones", texto: "Devoluciones" },
+  { to: "/multas", texto: "Multas" },
 ];
 
 const MENU_USUARIO: ItemMenu[] = [
   { to: "/catalogo", texto: "Catálogo" },
   { to: "/prestamos", texto: "Mis préstamos" },
+  { to: "/multas", texto: "Mis multas" },
 ];
 
 const NOMBRE_ROL: Record<string, string> = {

@@ -188,7 +188,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .estado--disponible, .estado--aprobado, .estado--devuelto { background: var(--primario-claro); color: #1d4a36; }
 .estado--prestado, .estado--solicitado { background: var(--info-claro); color: #1f4466; }
-.estado--vencido { background: var(--aviso-claro); color: #6e4100; }
+.estado--vencido, .estado--pendiente { background: var(--aviso-claro); color: #6e4100; }
+.estado--pagada { background: var(--primario-claro); color: #1d4a36; }
 .estado--perdido, .estado--rechazado, .estado--bloqueado { background: var(--error-claro); color: #7a1a14; }
 .estado--danado { background: var(--borde-suave); color: var(--texto-suave); }
 
