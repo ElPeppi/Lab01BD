@@ -38,5 +38,8 @@ aws s3 sync dist "s3://$BUCKET" --delete --exclude "index.html" \
 # index.html nunca se cachea: así el navegador siempre ve la versión nueva.
 aws s3 cp dist/index.html "s3://$BUCKET/index.html" --cache-control "no-cache"
 
-aws cloudfront create-invalidation --distribution-id "$DISTRIBUCION" --paths "/index.html" "/" > /dev/null
+# Sin estas variables, Git Bash/MSYS2 convierte "/index.html" en "C:/Program Files/Git/index.html"
+# antes de pasárselo a aws.exe, y CloudFront rechaza la ruta (InvalidArgument)
+MSYS_NO_PATHCONV=1 MSYS2_ARG_CONV_EXCL="*" \
+  aws cloudfront create-invalidation --distribution-id "$DISTRIBUCION" --paths "/index.html" "/" > /dev/null
 echo "Listo: https://biblioteca.jan-productions.com"

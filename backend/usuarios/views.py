@@ -2,11 +2,13 @@ import jwt
 from django.contrib.auth.hashers import check_password
 from django.db import IntegrityError, transaction
 from django.db.models import Q
-from rest_framework import mixins, viewsets
+from rest_framework import status, viewsets
 from rest_framework.decorators import api_view, authentication_classes, permission_classes
 from rest_framework.exceptions import ValidationError
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+
+from prestamos.models import Multa, Prestamo
 
 from .jwt_utils import crear_tokens, decodificar
 from .models import Empleado, Usuario
@@ -79,16 +81,16 @@ def me(request):
     u = request.user
     return Response(_perfil(u.tipo, u.id, u.nombre, u.rol))
 
-class UsuarioViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.GenericViewSet):
+class UsuarioViewSet(viewsets.ModelViewSet):
     """
-    Listado y registro de usuarios (estudiantes y docentes).
+    CRUD de usuarios (estudiantes y docentes).
     Consultar: todo el personal (para buscar a la persona y ver su historial de préstamos).
-    Registrar: solo el administrador.
+    Registrar, editar, bloquear/desbloquear (PATCH {"estado": ...}) y eliminar: solo el administrador.
     """
     serializer_class = UsuarioSerializer
 
     def get_permissions(self):
-        return [EsAdmin()] if self.action == "create" else [EsEmpleado()]
+        return [EsEmpleado()] if self.action in ("list", "retrieve") else [EsAdmin()]
 
     def get_queryset(self):
         qs = Usuario.objects.filter(eliminado=False).order_by("nombres")
@@ -97,10 +99,35 @@ class UsuarioViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, viewsets.Ge
             qs = qs.filter(Q(nombres__icontains=q) | Q(codigo__icontains=q) | Q(correo__icontains=q))
         return qs
 
-    def perform_create(self, serializer):
+    def _guardar(self, serializer):
         try:
             with transaction.atomic():
                 serializer.save()
         except IntegrityError:
             # Dos registros simultáneos con el mismo código/correo: lo frena el UNIQUE de MySQL
             raise ValidationError({"detail": "Ya existe un usuario con ese código, identificación o correo."})
+
+    def perform_create(self, serializer):
+        self._guardar(serializer)
+
+    def perform_update(self, serializer):
+        self._guardar(serializer)
+
+    @transaction.atomic
+    def destroy(self, request, *args, **kwargs):
+        # Mismo candado que solicitar_prestamo: no se cuela una solicitud mientras se elimina
+        usuario = Usuario.objects.select_for_update().get(pk=self.get_object().pk)
+        if Prestamo.objects.filter(usuario=usuario, estado__in=Prestamo.ESTADOS_ABIERTOS).exists():
+            return Response(
+                {"detail": "No se puede eliminar: tiene préstamos o solicitudes en curso."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        if Multa.objects.filter(devolucion__prestamo__usuario=usuario, pagada=False).exists():
+            return Response(
+                {"detail": "No se puede eliminar: tiene multas sin pagar."},
+                status=status.HTTP_409_CONFLICT,
+            )
+        # Borrado lógico, como libros y ejemplares: su historial de préstamos se conserva
+        usuario.eliminado = True
+        usuario.save(update_fields=["eliminado"])
+        return Response(status=status.HTTP_204_NO_CONTENT)

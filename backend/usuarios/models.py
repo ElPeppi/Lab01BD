@@ -15,6 +15,14 @@ class PoliticaPrestamo(models.Model):
 
 
 class Usuario(models.Model):
+    ESTADO_ACTIVO = "activo"
+    ESTADO_BLOQUEADO = "bloqueado"
+
+    ESTADO_CHOICES = [
+        (ESTADO_ACTIVO, "Activo"),
+        (ESTADO_BLOQUEADO, "Bloqueado"),
+    ]
+
     id_usuario = models.AutoField(primary_key=True)
     codigo = models.CharField(max_length=20, unique=True)
     identificacion = models.CharField(max_length=20, unique=True)
@@ -23,7 +31,7 @@ class Usuario(models.Model):
     clave_hash = models.CharField(max_length=255)
     rol = models.ForeignKey(PoliticaPrestamo, models.DO_NOTHING, db_column="rol")
     carrera = models.CharField(max_length=100, null=True, blank=True)
-    estado = models.CharField(max_length=10, default="activo")
+    estado = models.CharField(max_length=10, choices=ESTADO_CHOICES, default=ESTADO_ACTIVO)
     eliminado = models.BooleanField(default=False)
 
     class Meta:

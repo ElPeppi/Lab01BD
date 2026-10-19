@@ -250,6 +250,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 .acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem; }
 .acciones--fin { justify-content: flex-end; flex-wrap: nowrap; }
+/* Cuatro acciones por fila de tabla: en dos columnas para no ensanchar la tabla */
+.acciones--rejilla { display: grid; grid-template-columns: repeat(2, auto); justify-content: end; gap: 0.25rem 0.5rem; }
 
 /* Alertas con acción a la derecha (reintentar, cerrar) */
 .alerta--accion { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }

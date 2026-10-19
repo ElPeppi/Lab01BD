@@ -102,12 +102,13 @@ DATABASES = {
         # RDS está lejos: reutilizar la conexión evita repetir DNS + SSL en cada petición
         "CONN_MAX_AGE": 60,
         "CONN_HEALTH_CHECKS": True,
-        "OPTIONS": {
-            "charset": "utf8mb4",
-            "ssl": {"ca": str(BASE_DIR / "certs" / "global-bundle.pem")},
-        },
+        "OPTIONS": {"charset": "utf8mb4"},
     }
 }
+# Con RDS la conexión va cifrada y se verifica con el certificado de AWS (por defecto).
+# Para un MySQL local sin ese certificado: DB_SSL=false en backend/.env
+if os.getenv("DB_SSL", "true").lower() == "true":
+    DATABASES["default"]["OPTIONS"]["ssl"] = {"ca": str(BASE_DIR / "certs" / "global-bundle.pem")}
 
 
 # Password validation

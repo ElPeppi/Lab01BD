@@ -3,20 +3,27 @@ import { erroresDeCampo, mensajeError } from "../../api/errores";
 import { usuariosApi, type RolUsuario, type Usuario } from "../../api/usuarios";
 
 type Props = {
+  usuario: Usuario | null;
   onGuardado: (u: Usuario) => void;
   onCancelar: () => void;
 };
 
-const VACIO = { codigo: "", identificacion: "", nombres: "", correo: "", carrera: "", clave: "" };
-
-export default function FormUsuario({ onGuardado, onCancelar }: Props) {
-  const [datos, setDatos] = useState(VACIO);
-  const [rol, setRol] = useState<RolUsuario>("estudiante");
+/** Registrar o editar un usuario. Va dentro de <Dialogo>. */
+export default function FormUsuario({ usuario, onGuardado, onCancelar }: Props) {
+  const [datos, setDatos] = useState({
+    codigo: usuario?.codigo ?? "",
+    identificacion: usuario?.identificacion ?? "",
+    nombres: usuario?.nombres ?? "",
+    correo: usuario?.correo ?? "",
+    carrera: usuario?.carrera ?? "",
+    clave: "",
+  });
+  const [rol, setRol] = useState<RolUsuario>(usuario?.rol ?? "estudiante");
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [errorGeneral, setErrorGeneral] = useState("");
   const [guardando, setGuardando] = useState(false);
 
-  const cambiar = (campo: keyof typeof VACIO) => (e: { target: { value: string } }) =>
+  const cambiar = (campo: keyof typeof datos) => (e: { target: { value: string } }) =>
     setDatos((d) => ({ ...d, [campo]: e.target.value }));
 
   async function onSubmit(e: FormEvent) {
@@ -27,12 +34,18 @@ export default function FormUsuario({ onGuardado, onCancelar }: Props) {
     if (!datos.identificacion.trim()) locales.identificacion = "Escribe el documento de identidad.";
     if (!datos.nombres.trim()) locales.nombres = "Escribe el nombre completo.";
     if (!datos.correo.trim()) locales.correo = "Escribe el correo.";
-    if (datos.clave.length < 8) locales.clave = "La clave inicial debe tener al menos 8 caracteres.";
+    // Al editar, la clave vacía significa "no cambiarla"
+    if ((!usuario || datos.clave) && datos.clave.length < 8) locales.clave = "La clave debe tener al menos 8 caracteres.";
     setErrores(locales);
     if (Object.keys(locales).length) return;
     setGuardando(true);
     try {
-      onGuardado(await usuariosApi.registrar({ ...datos, rol }));
+      if (usuario) {
+        const { clave, ...resto } = datos;
+        onGuardado(await usuariosApi.actualizar(usuario.id_usuario, { ...resto, rol, ...(clave ? { clave } : {}) }));
+      } else {
+        onGuardado(await usuariosApi.registrar({ ...datos, rol }));
+      }
     } catch (err) {
       setErrores(erroresDeCampo(err));
       setErrorGeneral(mensajeError(err));
@@ -93,16 +106,24 @@ export default function FormUsuario({ onGuardado, onCancelar }: Props) {
         </div>
 
         <div className="campo">
-          <label htmlFor="us-clave">Clave inicial</label>
-          <input id="us-clave" type="password" autoComplete="new-password" value={datos.clave} onChange={cambiar("clave")} minLength={8} maxLength={128} required {...inv("clave")} />
-          {error("clave") ?? <small>Entrégasela al usuario; con ella inicia sesión. Mínimo 8 caracteres.</small>}
+          <label htmlFor="us-clave">
+            {usuario ? <>Nueva clave <span className="texto-suave">(opcional)</span></> : "Clave inicial"}
+          </label>
+          <input id="us-clave" type="password" autoComplete="new-password" value={datos.clave} onChange={cambiar("clave")} minLength={8} maxLength={128} required={!usuario} {...inv("clave")} />
+          {error("clave") ?? (
+            <small>
+              {usuario
+                ? "Déjala vacía para conservar la actual. Mínimo 8 caracteres."
+                : "Entrégasela al usuario; con ella inicia sesión. Mínimo 8 caracteres."}
+            </small>
+          )}
         </div>
       </div>
 
       <div className="dialogo-pie">
         <button type="button" className="btn btn--secundario" onClick={onCancelar}>Cancelar</button>
         <button type="submit" className="btn" disabled={guardando}>
-          {guardando ? "Registrando…" : "Registrar usuario"}
+          {usuario ? (guardando ? "Guardando…" : "Guardar cambios") : guardando ? "Registrando…" : "Registrar usuario"}
         </button>
       </div>
     </form>
