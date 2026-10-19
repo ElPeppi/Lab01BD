@@ -14,12 +14,20 @@ import { plural } from "../../utils/formato";
 import FormLibro from "./FormLibro";
 import "./Catalogo.css";
 
+type BuscarPor = "titulo" | "autor" | "isbn";
+
+const BUSQUEDAS: Record<BuscarPor, { etiqueta: string; ejemplo: string }> = {
+  titulo: { etiqueta: "Título", ejemplo: "Ej. Cien años de soledad" },
+  autor: { etiqueta: "Autor", ejemplo: "Ej. García Márquez" },
+  isbn: { etiqueta: "ISBN", ejemplo: "Ej. 978-0307474728" },
+};
+
 export default function Catalogo() {
   const { perfil } = useAuth();
   const esEmpleado = perfil?.tipo === "empleado";
 
   const [texto, setTexto] = useState("");
-  const [buscarPor, setBuscarPor] = useState<"titulo" | "autor">("titulo");
+  const [buscarPor, setBuscarPor] = useState<BuscarPor>("titulo");
   const [categoria, setCategoria] = useState("");
   const [soloDisponibles, setSoloDisponibles] = useState(false);
   const busqueda = useDebounce(texto.trim(), 300);
@@ -86,7 +94,7 @@ export default function Catalogo() {
           <p>
             {libros.datos
               ? `${plural(libros.datos.length, "libro")}${hayFiltros ? " con estos filtros" : " en la biblioteca"}.`
-              : "Busca por título o autor."}
+              : "Busca por título, autor, ISBN o categoría."}
           </p>
         </div>
         {esEmpleado && (
@@ -99,19 +107,20 @@ export default function Catalogo() {
       <form className="filtros" role="search" onSubmit={(e) => e.preventDefault()}>
         <div className="campo campo--corto">
           <label htmlFor="buscar-por">Buscar por</label>
-          <select id="buscar-por" value={buscarPor} onChange={(e) => setBuscarPor(e.target.value as "titulo" | "autor")}>
-            <option value="titulo">Título</option>
-            <option value="autor">Autor</option>
+          <select id="buscar-por" value={buscarPor} onChange={(e) => setBuscarPor(e.target.value as BuscarPor)}>
+            {Object.entries(BUSQUEDAS).map(([valor, b]) => (
+              <option key={valor} value={valor}>{b.etiqueta}</option>
+            ))}
           </select>
         </div>
         <div className="campo campo--ancho">
-          <label htmlFor="buscar">{buscarPor === "titulo" ? "Título" : "Autor"}</label>
+          <label htmlFor="buscar">{BUSQUEDAS[buscarPor].etiqueta}</label>
           <input
             id="buscar"
             type="search"
             value={texto}
             onChange={(e) => setTexto(e.target.value)}
-            placeholder={buscarPor === "titulo" ? "Ej. Cien años de soledad" : "Ej. García Márquez"}
+            placeholder={BUSQUEDAS[buscarPor].ejemplo}
           />
         </div>
         <div className="campo">

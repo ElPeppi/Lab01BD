@@ -21,7 +21,8 @@ class PrestamoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
     No hay PUT/DELETE: el préstamo solo cambia de estado por sus acciones.
 
     Permisos:
-      - Listar/consultar/solicitar: cualquier sesión. Un usuario solo ve sus propios préstamos.
+      - Listar/consultar/solicitar: cualquier sesión. Un usuario solo ve sus propios préstamos
+        (su historial). El personal ve todos y puede ver el historial de una persona con ?usuario=.
       - Aprobar/rechazar: solo personal de la biblioteca.
     Quién solicita o quién aprueba sale del token, nunca del cuerpo de la petición.
     """
@@ -45,7 +46,7 @@ class PrestamoViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin,
         p = self.request.query_params
         if p.get("estado"):
             qs = qs.filter(estado=p["estado"])
-        if p.get("usuario", "").isdigit():
+        if p.get("usuario", "").isdigit():  # para un usuario no cambia nada: ya está limitado a sí mismo
             qs = qs.filter(usuario_id=p["usuario"])
         if p.get("ejemplar", "").isdigit():
             qs = qs.filter(ejemplar_id=p["ejemplar"])

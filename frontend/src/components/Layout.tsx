@@ -4,7 +4,7 @@ import { useAuth } from "../auth/AuthContext";
 import { Cargando } from "./Estados";
 import "./Layout.css";
 
-type ItemMenu = { to: string; texto: string };
+type ItemMenu = { to: string; texto: string; soloAdmin?: boolean };
 
 // El menú depende del tipo de cuenta. Ocultar una opción NO es seguridad:
 // la protección real está en RutaProtegida y en los permisos del backend.
@@ -16,6 +16,7 @@ const MENU_EMPLEADO: ItemMenu[] = [
   { to: "/devoluciones", texto: "Devoluciones" },
   { to: "/multas", texto: "Multas" },
   { to: "/reportes", texto: "Reportes" },
+  { to: "/usuarios", texto: "Usuarios", soloAdmin: true },
 ];
 
 const MENU_USUARIO: ItemMenu[] = [
@@ -34,7 +35,9 @@ const NOMBRE_ROL: Record<string, string> = {
 export default function Layout() {
   const { perfil, logout } = useAuth();
   const [menuAbierto, setMenuAbierto] = useState(false);
-  const menu = perfil?.tipo === "empleado" ? MENU_EMPLEADO : MENU_USUARIO;
+  const menu = (perfil?.tipo === "empleado" ? MENU_EMPLEADO : MENU_USUARIO).filter(
+    (item) => !item.soloAdmin || perfil?.rol === "admin",
+  );
   const cerrarMenu = () => setMenuAbierto(false);
 
   // Con el menú abierto en celular: Escape lo cierra y la página de atrás no hace scroll

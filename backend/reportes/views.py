@@ -25,6 +25,29 @@ def _obtener_tarifa_multa_dia():
         return Decimal("1000.00")
 
 
+def _fecha(params, nombre):
+    try:
+        return parse_date(params.get(nombre) or "")
+    except ValueError:  # formato válido pero fecha imposible, ej. 2026-02-30
+        return None
+
+
+def _prestados_en_periodo(params, ruta):
+    """
+    Filtro para contar solo préstamos que de verdad se entregaron (aprobados o ya
+    devueltos), con fecha_prestamo dentro de ?desde= y ?hasta= si vienen.
+    Las solicitudes pendientes o rechazadas no cuentan como préstamo.
+    `ruta` es el camino ORM desde el modelo base hasta prestamo.
+    """
+    q = Q(**{f"{ruta}__estado__in": (Prestamo.APROBADO, Prestamo.DEVUELTO)})
+    desde, hasta = _fecha(params, "desde"), _fecha(params, "hasta")
+    if desde:
+        q &= Q(**{f"{ruta}__fecha_prestamo__gte": desde})
+    if hasta:
+        q &= Q(**{f"{ruta}__fecha_prestamo__lte": hasta})
+    return q
+
+
 class ResumenReportesView(APIView):
     """
     Indicadores clave (KPIs) generales del sistema de biblioteca.
@@ -108,27 +131,18 @@ class ResumenReportesView(APIView):
 
 class LibrosPopularesView(APIView):
     """
-    Libros con mayor frecuencia de préstamos, con filtros por fechas, categoría y editorial.
+    Libros más prestados en un periodo (?desde=&hasta= sobre la fecha de préstamo),
+    con filtros por categoría y editorial. Solo aparecen libros con al menos un préstamo.
     """
     permission_classes = [EsEmpleado]
 
     def get(self, request):
         p = request.query_params
-        desde = p.get("desde")
-        hasta = p.get("hasta")
         categoria_id = p.get("categoria")
         editorial_id = p.get("editorial")
         limit = int(p.get("limit", 10))
 
-        filtro_prestamo = Q()
-        if desde:
-            fecha_d = parse_date(desde)
-            if fecha_d:
-                filtro_prestamo &= Q(ejemplar__prestamo__fecha_solicitud__date__gte=fecha_d)
-        if hasta:
-            fecha_h = parse_date(hasta)
-            if fecha_h:
-                filtro_prestamo &= Q(ejemplar__prestamo__fecha_solicitud__date__lte=fecha_h)
+        filtro_prestamo = _prestados_en_periodo(p, "ejemplar__prestamo")
 
         qs = Libro.objects.filter(eliminado=False)
         if categoria_id and categoria_id.isdigit():
@@ -152,7 +166,9 @@ class LibrosPopularesView(APIView):
                 filter=Q(ejemplar__eliminado=False),
                 distinct=True
             )
-        ).select_related("categoria", "editorial").order_by("-total_prestamos", "titulo")[:limit]
+        ).filter(total_prestamos__gt=0).select_related("categoria", "editorial").order_by(
+            "-total_prestamos", "titulo"
+        )[:limit]
 
         resultados = [
             {
@@ -361,7 +377,8 @@ class MultasRecaudoView(APIView):
 
 class UsuariosActividadView(APIView):
     """
-    Usuarios con mayor actividad en préstamos y control de multas.
+    Usuarios con más préstamos en un periodo (?desde=&hasta= sobre la fecha de préstamo),
+    con su control de multas. Solo aparecen usuarios con al menos un préstamo en el periodo.
     """
     permission_classes = [EsEmpleado]
 
@@ -378,7 +395,7 @@ class UsuariosActividadView(APIView):
             qs = qs.filter(carrera__icontains=carrera)
 
         qs = qs.annotate(
-            total_prestamos=Count("prestamo"),
+            total_prestamos=Count("prestamo", filter=_prestados_en_periodo(p, "prestamo")),
             prestamos_activos=Count(
                 "prestamo",
                 filter=Q(prestamo__estado=Prestamo.APROBADO)
@@ -393,7 +410,7 @@ class UsuariosActividadView(APIView):
                 filter=Q(prestamo__devolucion__multa__pagada=False)
             ),
             total_monto_multas=Sum("prestamo__devolucion__multa__monto")
-        ).order_by("-total_prestamos", "nombres")[:limit]
+        ).filter(total_prestamos__gt=0).order_by("-total_prestamos", "nombres")[:limit]
 
         resultados = [
             {
@@ -433,11 +450,11 @@ class ExportarCSVReportesView(APIView):
             writer = csv.writer(response)
             writer.writerow(["ID", "ISBN", "Título", "Año", "Categoría", "Editorial", "Total Préstamos", "Préstamos Activos", "Ejemplares Disponibles", "Total Ejemplares"])
             libros = Libro.objects.filter(eliminado=False).annotate(
-                total_p=Count("ejemplar__prestamo"),
+                total_p=Count("ejemplar__prestamo", filter=_prestados_en_periodo(request.query_params, "ejemplar__prestamo")),
                 activos_p=Count("ejemplar__prestamo", filter=Q(ejemplar__prestamo__estado=Prestamo.APROBADO)),
                 disp=Count("ejemplar", filter=Q(ejemplar__eliminado=False, ejemplar__estado=Ejemplar.ESTADO_DISPONIBLE), distinct=True),
                 tot=Count("ejemplar", filter=Q(ejemplar__eliminado=False), distinct=True)
-            ).select_related("categoria", "editorial").order_by("-total_p")
+            ).filter(total_p__gt=0).select_related("categoria", "editorial").order_by("-total_p")
             for libro in libros:
                 writer.writerow([
                     libro.id_libro, libro.isbn, libro.titulo, libro.anio,

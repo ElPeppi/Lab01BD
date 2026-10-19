@@ -159,11 +159,12 @@ export const reportesApi = {
       })
       .then((r) => r.data),
 
-  usuariosActividad: (params?: { rol?: string; carrera?: string; limit?: number }) =>
+  usuariosActividad: (params?: { desde?: string; hasta?: string; rol?: string; carrera?: string; limit?: number }) =>
     api.get<UsuarioActividad[]>("/api/reportes/usuarios-actividad/", { params }).then((r) => r.data),
 
-  descargarCSV: async (tipo: "libros-populares" | "morosos" | "multas") => {
-    const res = await api.get(`/api/reportes/exportar/?tipo=${tipo}`, {
+  descargarCSV: async (tipo: "libros-populares" | "morosos" | "multas", periodo?: { desde?: string; hasta?: string }) => {
+    const res = await api.get("/api/reportes/exportar/", {
+      params: { tipo, ...periodo },
       responseType: "blob",
     });
     const blob = new Blob([res.data], { type: "text/csv;charset=utf-8;" });

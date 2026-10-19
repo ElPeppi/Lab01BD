@@ -46,15 +46,21 @@ export default function Reportes() {
   const consultaMultas = useConsulta(consultarMultas);
 
   const consultarUsuarios = useCallback(
-    () => reportesApi.usuariosActividad({ rol: rolUsuario || undefined, limit: limite }),
-    [rolUsuario, limite]
+    () =>
+      reportesApi.usuariosActividad({
+        desde: desde || undefined,
+        hasta: hasta || undefined,
+        rol: rolUsuario || undefined,
+        limit: limite,
+      }),
+    [desde, hasta, rolUsuario, limite]
   );
   const consultaUsuarios = useConsulta(consultarUsuarios);
 
   const handleDescargar = async (tipo: "libros-populares" | "morosos" | "multas") => {
     try {
       setExportando(true);
-      await reportesApi.descargarCSV(tipo);
+      await reportesApi.descargarCSV(tipo, { desde: desde || undefined, hasta: hasta || undefined });
     } catch {
       alert("Error al descargar el archivo CSV");
     } finally {
@@ -498,6 +504,24 @@ export default function Reportes() {
         <section>
           <div className="filtros">
             <div className="campo campo--corto">
+              <label htmlFor="usr-desde">Desde</label>
+              <input
+                id="usr-desde"
+                type="date"
+                value={desde}
+                onChange={(e) => setDesde(e.target.value)}
+              />
+            </div>
+            <div className="campo campo--corto">
+              <label htmlFor="usr-hasta">Hasta</label>
+              <input
+                id="usr-hasta"
+                type="date"
+                value={hasta}
+                onChange={(e) => setHasta(e.target.value)}
+              />
+            </div>
+            <div className="campo campo--corto">
               <label htmlFor="usr-rol">Tipo de usuario</label>
               <select
                 id="usr-rol"
@@ -529,7 +553,7 @@ export default function Reportes() {
           )}
           {consultaUsuarios.datos && consultaUsuarios.datos.length === 0 && (
             <Vacio titulo="Sin usuarios">
-              <p>No se encontraron usuarios con actividad registrada.</p>
+              <p>Ningún usuario tiene préstamos en el periodo seleccionado.</p>
             </Vacio>
           )}
           {consultaUsuarios.datos && consultaUsuarios.datos.length > 0 && (
@@ -541,7 +565,7 @@ export default function Reportes() {
                     <th>Código</th>
                     <th>Rol / Carrera</th>
                     <th>Estado</th>
-                    <th className="num">Préstamos Totales</th>
+                    <th className="num">Préstamos en el periodo</th>
                     <th className="num">Préstamos Activos</th>
                     <th className="num">Multas</th>
                     <th className="num">Monto Multas</th>

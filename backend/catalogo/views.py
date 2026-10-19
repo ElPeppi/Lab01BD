@@ -1,5 +1,7 @@
-from django.db.models import Count, IntegerField, OuterRef, Q, Subquery
-from django.db.models.functions import Coalesce
+import re
+
+from django.db.models import Count, IntegerField, OuterRef, Q, Subquery, Value
+from django.db.models.functions import Coalesce, Replace
 from rest_framework import status, viewsets
 from rest_framework.response import Response
 
@@ -81,8 +83,11 @@ class LibroViewSet(viewsets.ModelViewSet):
         p = self.request.query_params
         if p.get("titulo"):
             qs = qs.filter(titulo__icontains=p["titulo"])
-        if p.get("isbn"):
-            qs = qs.filter(isbn__icontains=p["isbn"])
+        isbn = re.sub(r"[\s-]", "", p.get("isbn", ""))
+        if isbn:
+            # Se compara sin guiones ni espacios: "9788497592208" encuentra "978-8497592208"
+            sin_guiones = Replace(Replace("isbn", Value("-"), Value("")), Value(" "), Value(""))
+            qs = qs.annotate(isbn_limpio=sin_guiones).filter(isbn_limpio__icontains=isbn)
         if p.get("autor"):
             qs = qs.filter(autores__nombre__icontains=p["autor"]).distinct()
         if p.get("categoria"):
