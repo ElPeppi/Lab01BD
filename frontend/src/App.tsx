@@ -12,6 +12,7 @@ const Dashboard = lazy(() => import("./pages/dashboard/Dashboard"));
 const Ejemplares = lazy(() => import("./pages/ejemplares/Ejemplares"));
 const Devoluciones = lazy(() => import("./pages/devoluciones/Devoluciones"));
 const Multas = lazy(() => import("./pages/multas/Multas"));
+const Reportes = lazy(() => import("./pages/reportes/Reportes"));
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/ejemplares" element={<Ejemplares />} />
               <Route path="/devoluciones" element={<Devoluciones />} />
+              <Route path="/reportes" element={<Reportes />} />
             </Route>
           </Route>
         </Route>

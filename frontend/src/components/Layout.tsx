@@ -15,6 +15,7 @@ const MENU_EMPLEADO: ItemMenu[] = [
   { to: "/prestamos", texto: "Préstamos" },
   { to: "/devoluciones", texto: "Devoluciones" },
   { to: "/multas", texto: "Multas" },
+  { to: "/reportes", texto: "Reportes" },
 ];
 
 const MENU_USUARIO: ItemMenu[] = [
