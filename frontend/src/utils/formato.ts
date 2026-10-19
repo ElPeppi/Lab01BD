@@ -39,4 +39,6 @@ export const NOMBRE_ESTADO: Record<string, string> = {
   danado: "Dañado",
   pagada: "Pagada",
   pendiente: "Pendiente",
+  activo: "Activo",
+  bloqueado: "Bloqueado",
 };

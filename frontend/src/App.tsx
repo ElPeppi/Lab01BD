@@ -13,6 +13,7 @@ const Ejemplares = lazy(() => import("./pages/ejemplares/Ejemplares"));
 const Devoluciones = lazy(() => import("./pages/devoluciones/Devoluciones"));
 const Multas = lazy(() => import("./pages/multas/Multas"));
 const Reportes = lazy(() => import("./pages/reportes/Reportes"));
+const Usuarios = lazy(() => import("./pages/usuarios/Usuarios"));
 
 export default function App() {
   return (
@@ -31,6 +32,9 @@ export default function App() {
               <Route path="/ejemplares" element={<Ejemplares />} />
               <Route path="/devoluciones" element={<Devoluciones />} />
               <Route path="/reportes" element={<Reportes />} />
+              <Route element={<RutaProtegida roles={["admin"]} />}>
+                <Route path="/usuarios" element={<Usuarios />} />
+              </Route>
             </Route>
           </Route>
         </Route>

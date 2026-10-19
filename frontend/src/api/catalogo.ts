@@ -4,6 +4,7 @@ import type { Autor, Categoria, Editorial, Libro, LibroEntrada } from "./tipos";
 export type FiltrosLibros = {
   titulo?: string;
   autor?: string;
+  isbn?: string;
   categoria?: number;
   soloDisponibles?: boolean;
 };
@@ -15,6 +16,7 @@ export const catalogoApi = {
         params: {
           titulo: f.titulo || undefined,
           autor: f.autor || undefined,
+          isbn: f.isbn || undefined,
           categoria: f.categoria || undefined,
           disponible: f.soloDisponibles ? "true" : undefined,
         },

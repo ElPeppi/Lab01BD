@@ -3,7 +3,8 @@ import type { EstadoPrestamo, Prestamo } from "./tipos";
 
 export type FiltrosPrestamos = {
   estado?: EstadoPrestamo;
-  usuario?: number;
+  usuario?: number;   // historial de una persona (personal). A un estudiante/docente el
+                      // backend siempre le devuelve solo los suyos, por el token
   activos?: boolean;  // aprobados (sin devolver)
   vencidos?: boolean; // aprobados con fecha de vencimiento pasada
 };

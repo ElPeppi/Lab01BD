@@ -1,20 +1,17 @@
-import { useCallback } from "react";
 import { Link } from "react-router-dom";
 import { multasApi } from "../../api/devoluciones";
 import { prestamosApi } from "../../api/prestamos";
-import { useAuth } from "../../auth/AuthContext";
 import { Cargando, ErrorCarga, Vacio } from "../../components/Estados";
 import { EstadoPrestamo } from "../../components/EtiquetaEstado";
 import { useConsulta } from "../../hooks/useConsulta";
 import { formatearFecha, formatearPesos } from "../../utils/formato";
 
+const miHistorial = () => prestamosApi.listar();
 const misMultasPendientes = () => multasApi.listar({ pagada: false });
 
 /** Vista del estudiante o docente: solo sus préstamos. */
 export default function MisPrestamos() {
-  const { perfil } = useAuth();
-  const consulta = useCallback(() => prestamosApi.listar({ usuario: perfil?.id }), [perfil?.id]);
-  const prestamos = useConsulta(consulta);
+  const prestamos = useConsulta(miHistorial);
   const multas = useConsulta(misMultasPendientes);
   const debe = (multas.datos ?? []).reduce((t, m) => t + Number(m.monto), 0);
 

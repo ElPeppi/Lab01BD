@@ -1,14 +1,16 @@
 import { useCallback, useState, type FormEvent } from "react";
+import { useSearchParams } from "react-router-dom";
 import { mensajeError } from "../../api/errores";
 import { prestamosApi, type FiltrosPrestamos } from "../../api/prestamos";
 import type { Prestamo } from "../../api/tipos";
+import { usuariosApi } from "../../api/usuarios";
 import { useAuth } from "../../auth/AuthContext";
 import Aviso, { type AvisoDatos } from "../../components/Aviso";
 import Dialogo from "../../components/Dialogo";
 import { Cargando, ErrorCarga, Vacio } from "../../components/Estados";
 import { EstadoPrestamo } from "../../components/EtiquetaEstado";
 import { useConsulta } from "../../hooks/useConsulta";
-import { formatearFecha } from "../../utils/formato";
+import { formatearFecha, plural } from "../../utils/formato";
 
 type Vista = "solicitudes" | "activos" | "vencidos" | "todos";
 
@@ -19,14 +21,35 @@ const VISTAS: { id: Vista; texto: string; filtro: FiltrosPrestamos; vacio: strin
   { id: "todos", texto: "Historial", filtro: {}, vacio: "Todavía no hay préstamos registrados." },
 ];
 
-/** Vista del personal: revisar solicitudes y seguir los préstamos. */
+const todosLosUsuarios = () => usuariosApi.listar();
+
+/** Vista del personal: revisar solicitudes, seguir los préstamos y ver el historial de una persona. */
 export default function GestionPrestamos() {
   const { perfil } = useAuth();
-  const [vista, setVista] = useState<Vista>("solicitudes");
+  // ?usuario=ID abre directo el historial de esa persona (enlace desde Usuarios)
+  const [params, setParams] = useSearchParams();
+  const usuario = params.get("usuario") ?? "";
+  const [vista, setVista] = useState<Vista>(usuario ? "todos" : "solicitudes");
   const actual = VISTAS.find((v) => v.id === vista)!;
+  const usuarios = useConsulta(todosLosUsuarios);
+  const persona = usuarios.datos?.find((u) => String(u.id_usuario) === usuario);
 
-  const consulta = useCallback(() => prestamosApi.listar(VISTAS.find((v) => v.id === vista)!.filtro), [vista]);
+  const consulta = useCallback(
+    () =>
+      prestamosApi.listar({
+        ...VISTAS.find((v) => v.id === vista)!.filtro,
+        usuario: usuario ? Number(usuario) : undefined,
+      }),
+    [vista, usuario],
+  );
   const prestamos = useConsulta(consulta);
+
+  function cambiarUsuario(valor: string) {
+    const siguiente = new URLSearchParams(params);
+    if (valor) siguiente.set("usuario", valor);
+    else siguiente.delete("usuario");
+    setParams(siguiente, { replace: true });
+  }
 
   const [aviso, setAviso] = useState<AvisoDatos | null>(null);
   const [aprobando, setAprobando] = useState<number | null>(null);
@@ -85,9 +108,27 @@ export default function GestionPrestamos() {
       <header className="encabezado">
         <div>
           <h1>Préstamos</h1>
-          <p>Revisa las solicitudes y sigue los libros que están fuera de la biblioteca.</p>
+          <p>
+            {persona
+              ? `Préstamos de ${persona.nombres} (código ${persona.codigo})${prestamos.datos ? `: ${plural(prestamos.datos.length, "registro")}` : ""}.`
+              : "Revisa las solicitudes, sigue los libros prestados y consulta el historial de cada persona."}
+          </p>
         </div>
       </header>
+
+      <form className="filtros" role="search" onSubmit={(e) => e.preventDefault()}>
+        <div className="campo campo--ancho">
+          <label htmlFor="filtro-usuario">Usuario</label>
+          <select id="filtro-usuario" value={usuario} onChange={(e) => cambiarUsuario(e.target.value)}>
+            <option value="">Todos los usuarios</option>
+            {usuarios.datos?.map((u) => (
+              <option key={u.id_usuario} value={u.id_usuario}>
+                {u.nombres} ({u.codigo})
+              </option>
+            ))}
+          </select>
+        </div>
+      </form>
 
       <div className="segmentos" role="group" aria-label="Qué préstamos ver">
         {VISTAS.map((v) => (
@@ -101,7 +142,9 @@ export default function GestionPrestamos() {
       {prestamos.error && <ErrorCarga mensaje={prestamos.error} onReintentar={prestamos.recargar} />}
       {!prestamos.datos && prestamos.cargando && <Cargando texto="Cargando préstamos…" />}
 
-      {prestamos.datos && prestamos.datos.length === 0 && <Vacio titulo={actual.vacio} />}
+      {prestamos.datos && prestamos.datos.length === 0 && (
+        <Vacio titulo={persona ? `${persona.nombres} no tiene préstamos en esta vista.` : actual.vacio} />
+      )}
 
       {prestamos.datos && prestamos.datos.length > 0 && (
         <div className="tabla-contenedor" aria-busy={prestamos.cargando}>
