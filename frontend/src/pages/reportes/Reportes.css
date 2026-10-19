@@ -1,0 +1,84 @@
+.reportes-tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.reportes-tarjeta {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: var(--radio);
+  padding: 1.25rem;
+}
+
+.reportes-tarjeta h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+  color: var(--texto-suave);
+}
+
+.reportes-tarjeta .valor {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--tinta);
+  margin-bottom: 0.5rem;
+}
+
+.reportes-tarjeta .subvalores {
+  font-size: 0.875rem;
+  color: var(--texto-suave);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.reportes-barra-progreso {
+  height: 6px;
+  background: var(--superficie-alt);
+  border-radius: 3px;
+  overflow: hidden;
+  margin-top: 0.5rem;
+}
+
+.reportes-barra-relleno {
+  height: 100%;
+  background: var(--primario);
+  border-radius: 3px;
+}
+
+.reportes-acciones {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.reportes-ranking {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--superficie-alt);
+  font-weight: 700;
+  font-size: 0.8125rem;
+}
+
+.reportes-ranking--oro {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.reportes-ranking--plata {
+  background: #f3f4f6;
+  color: #374151;
+}
+
+.reportes-ranking--bronce {
+  background: #ffedd5;
+  color: #9a3412;
+}
