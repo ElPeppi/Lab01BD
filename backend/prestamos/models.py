@@ -15,6 +15,13 @@ class Configuracion(models.Model):
 
 
 class Prestamo(models.Model):
+    SOLICITADO = "solicitado"
+    APROBADO = "aprobado"
+    RECHAZADO = "rechazado"
+    DEVUELTO = "devuelto"
+    # Estados que ocupan el ejemplar (columna generada ejemplar_abierto)
+    ESTADOS_ABIERTOS = (SOLICITADO, APROBADO)
+
     id_prestamo = models.AutoField(primary_key=True)
     usuario = models.ForeignKey("usuarios.Usuario", models.DO_NOTHING, db_column="id_usuario")
     ejemplar = models.ForeignKey("ejemplares.Ejemplar", models.DO_NOTHING, db_column="id_ejemplar")
@@ -31,6 +38,14 @@ class Prestamo(models.Model):
     class Meta:
         managed = False
         db_table = "prestamo"
+
+    @property
+    def vencido(self):
+        return self.estado == self.APROBADO and self.fecha_vencimiento < timezone.localdate()
+
+    @property
+    def dias_retraso(self):
+        return (timezone.localdate() - self.fecha_vencimiento).days if self.vencido else 0
 
 
 class Devolucion(models.Model):

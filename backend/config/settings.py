@@ -78,6 +78,9 @@ DATABASES = {
         "PASSWORD": os.getenv("DB_PASSWORD") or "Majo123890",
         "HOST": os.getenv("DB_HOST") or "localhost",
         "PORT": os.getenv("DB_PORT") or "3306",
+        # RDS está lejos: reutilizar la conexión evita repetir DNS + SSL en cada petición
+        "CONN_MAX_AGE": 60,
+        "CONN_HEALTH_CHECKS": True,
         "OPTIONS": {
             "charset": "utf8mb4",
             "ssl": {"ca": str(BASE_DIR / "certs" / "global-bundle.pem")},
