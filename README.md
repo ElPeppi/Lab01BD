@@ -15,10 +15,12 @@ biblioteca de la universidad.
 
 | Nombre | Código |
 |---|---|
-| _(completar)_ | |
-| _(completar)_ | |
-| _(completar)_ | |
-| _(completar)_ | |
+| _Jefferson Jose Torres Lora_ | |
+| _Maria Jose Sanchez Mercado_ | |
+| _Natalia Paola Alvarado_ | |
+| _Luis Alfonso Herrera_ | |
+| _Eliud Quiroz_ | |
+| _Yader Alejandro Vega Sabogal_ | |
 
 ## Contenido de la entrega
 
